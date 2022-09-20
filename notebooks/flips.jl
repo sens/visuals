@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.11
 
 using Markdown
 using InteractiveUtils
@@ -21,7 +21,7 @@ end
 
 # ╔═╡ 7bb5a5cf-e386-440a-9310-f72d95a38c43
 md"""
-# Long-run frequency definition of probability: Law of large numbers
+# Coin flip simulator
 
     Śaunak Sen
 	Division of Biostatistics
@@ -30,17 +30,46 @@ md"""
 	2022-09-09
 """
 
+# ╔═╡ 8c45a6ca-80c4-4066-8b5f-6fb28182e768
+md"""
+What would happen if you flipped a coin a bunch of times, and kept a running tally of the proportion of heads?  What if you enlisted a few friends and they did the same? What if the coin was not fair, that is, biased towards heads or tails?
+
+The simulator on this page helps you visualize that.
+
+## Instructions
+
+With the default settings, the simulator shows what would happen if you flipped a fair coin 100 times, keeping a running total of the proportion of heads, which is plotted as a line.  This line will start either at 0 or 1, and gradually drift towards 0.5.
+
+This simulator allows you to vary three parameters of the simulation, as follows.
+
+#### Number of flips
+
+- What happens when you increase the number of flips? 
+- What is the final proportion of heads compared to the true proportion?
+
+#### Number of replications
+
+- What if you enlisted another friend to flip a coin with you, repeating (replicating) what you did?  
+- Increase the number of replications to 2. How close would your results be?  
+- Vary the number of flips.  Increase the number of replications (effectively the number of friends who are playing this game with you).  What do you see?
+
+#### True probability of heads
+
+- How do the results change if the coin is not fair, i.e. if the probability of heads was not exactly 0.5?  
+- How different is the final empirical proportion of heads from the true probability of heads as you vary the true probability of heads in the simulator?
+"""
+
 # ╔═╡ 2bd8490a-c0d6-4831-9e74-ea3f4b3888cb
 md"""
 - Number of flips, n: $(@bind n NumberField(1:1:100000, default=100)) 
-- Number of replications, m: $(@bind m NumberField(1:1:100, default=10))
+- Number of replications, m: $(@bind m NumberField(1:1:100, default=1))
 - Probability of head, p:
   0.0 $(@bind p Slider(0.0:0.01:1.00, default=0.5)) 1.0;
 """
 
 # ╔═╡ f3f25991-92ac-4da5-b154-3ac3a7056a77
 md"""
-Thus we have,
+According to your selections, we have:
 - Number of flips, n=$n
 - Number of replications, m=$m
 - Probability of head, p = $p
@@ -57,8 +86,8 @@ end;
 begin
 	plot(xmean,label="",xlabel="Number of flips",ylabel="Proportion of heads")
 	plot!(x->p,0,n,color="black",label="p=$p",ylim=(0,1))
-	plot!(n->p+2*sqrt(p*(1-p)/n),0,n,color="black",lty=1,label="")
-	plot!(n->p-2*sqrt(p*(1-p)/n),0,n,color="black",lty=1,label="")
+	plot!(n->p+2*sqrt(p*(1-p)/n),0,n,color="grey75",lty=1,label="")
+	plot!(n->p-2*sqrt(p*(1-p)/n),0,n,color="grey75",lty=1,label="")
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -79,7 +108,7 @@ PlutoUI = "~0.7.40"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.8.0"
+julia_version = "1.8.1"
 manifest_format = "2.0"
 project_hash = "7691c0c3a7876441b543659bf6d4e7a11f36ee96"
 
@@ -1079,6 +1108,7 @@ version = "1.4.1+0"
 
 # ╔═╡ Cell order:
 # ╟─7bb5a5cf-e386-440a-9310-f72d95a38c43
+# ╟─8c45a6ca-80c4-4066-8b5f-6fb28182e768
 # ╟─82baa602-33e1-11ed-057d-31329c208077
 # ╟─2bd8490a-c0d6-4831-9e74-ea3f4b3888cb
 # ╟─f3f25991-92ac-4da5-b154-3ac3a7056a77

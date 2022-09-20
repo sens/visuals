@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.11
 
 using Markdown
 using InteractiveUtils
@@ -14,24 +14,11 @@ macro bind(def, element)
     end
 end
 
-# ╔═╡ 4402b992-343b-11ed-1a0c-274847cf71d9
-begin
-	using Pluto,PlutoUI, CairoMakie, Random, Distributions
-end
-
-# ╔═╡ c3344b73-51bd-4c59-a987-e0adfcc282ea
-md"""
-# Bayes Theorem
-
-    Śaunak Sen
-	Division of Biostatistics
-	Department of Preventive Medicine
-	University of Tennessee Health Science Center
-	2022-09-09
-"""
-
 # ╔═╡ 1b945a07-252b-429f-bc29-437bb05ed1e8
 begin
+
+	using Pluto,PlutoUI, CairoMakie, Random, Distributions, Roots, LaTeXStrings
+		
 	function mosaic(c::Matrix{Float64};
 		xnames=1:size(c,2),ynames=1:size(c,1),
 		xlabel="",ylabel="",colors=nothing)
@@ -54,7 +41,7 @@ begin
     	ax1 = Axis(f[1,1], xaxisposition = :top,
 			xgridvisible=false, ygridvisible=false,
 			xticks = (cw.-vec(w)./2, 
-			string.(xnames)),
+			string.(["",""])),
 			yticksvisible=false,
 			yticklabelsvisible=false)
     	ax2 = Axis( f[1,1], xlabel=xlabel, ylabel=ylabel, 
@@ -83,56 +70,129 @@ begin
 end;
 
 
-# ╔═╡ cc8e9082-d5a8-4690-a7cb-26f366133834
+# ╔═╡ c3344b73-51bd-4c59-a987-e0adfcc282ea
 md"""
-- Disease prevalance p: 0.0 $(@bind pD PlutoUI.Slider(0.0:0.01:1.00, default=0.1)) 1.0
-- Sensitivity sens: 0.0 $(@bind sens PlutoUI.Slider(0.0:0.01:1.00, default=0.9)) 1.0
-- Specificity spec: 0.0 $(@bind spec PlutoUI.Slider(0.0:0.01:1.00, default=0.9)) 1.0
+# Bayes Theorem
+
+    Śaunak Sen
+	Division of Biostatistics
+	Department of Preventive Medicine
+	University of Tennessee Health Science Center
+	2022-09-09
 """
 
-# ╔═╡ 7e45503d-8400-4eea-8257-6309d839926c
+# ╔═╡ 5bccbb9b-e69f-4c30-93b8-57e2d153c772
+md"""
+This document is an illustration of the rules of probability and Bayes Theorem for two events, which we denote by A and B.  For example, A could be the the event that someone has a disease, and B could be a positive test result.
+
+In the figure below, we indicate the event "A" in blue shades; orange shades indicate that A did not occur, indicated by "a".   The event "B" is indicated by dark shades, and the event that B did not occur by light shades, indicated by "b". The area of a rectangle is proportional to the probability of an event.  For example the chance that both A and B occured is denoted by the dark blue shade ("AB").
+
+When you begin, the odds ratio is set to 1.  The odds ratio, which defines the strength of association between the two events, A and B, is defined as
+
+$$\frac{P(AB)}{P{(aB)}}\frac{P(ab)}{P(Ab)}$$
+
+Note that slider shows the odds ratio on the log2 scale, so 0, corresponds to an odds ratio of 2⁰=1.0; and 4 corresponds to an odds ratio of 2⁴=16; and so on.
+"""
+
+# ╔═╡ cc8e9082-d5a8-4690-a7cb-26f366133834
+md"""
+- P(A): 0.0 $(@bind A PlutoUI.Slider(0.0:0.1:1.00, default=0.5)) 1.0
+- P(B): 0.0 $(@bind B PlutoUI.Slider(0.0:0.1:1.00, default=0.5)) 1.0
+- log2 of odds ratio: -4 $(@bind log2OR PlutoUI.Slider(-4.0:1:4.0, default=0.0)) 4
+"""
+
+# ╔═╡ f6390f02-14ae-4ad1-9c46-9c1048877dee
+md"""
+You chose: P(A) = $A, P(B) = $B, and odds ratio = $(2.0^log2OR).
+"""
+
+# ╔═╡ 6913a665-eeee-429c-8167-bb591329457e
 begin
-	pd = 1-pD
-	pDandT = sens*pD
-	pdandt = spec*pd
-	pDandt = pD - pDandT
-	pdandT = pd - pdandt
-	prob = [pDandT pdandT; pDandt pdandt]
+	R = 2.0^log2OR
+	f(x,A,B,R) = (x-A*B)/((A-x)*(B-x)) + 1 - R
+	AB = find_zeros(y->f(y,A,B,R), 0.0, A)[1]
+	Ab = A - AB
+	aB = B - AB
+	ab = 1 - A - B + AB
+	prob = [AB aB; Ab ab]
 end;
 
 # ╔═╡ 671bbc56-63ca-42b9-8493-3f85f00b7137
-mosaic(prob,xnames=["D","H"],ynames=["+","-"])
+mosaic(prob,xnames=["A","a"],ynames=["B","b"])
 
-# ╔═╡ 4543e6b2-d177-499d-9954-a32c33570702
-begin
-	colscheme = categorical_colors(:tab20,4)
-	mosaic( permutedims(prob), ynames=["D","H"],
-		xnames=["+","-"], colors=colscheme[[1 3 2 4]] )
-end
+# ╔═╡ e7351cef-d7e6-4659-b385-de424b859265
+md"""
+## Rules of probability
+
+- With the the sliders are at their default values, check the following.
+    - What is the area corresponding to the event AB (multiply the sides of the rectangle)? 
+    - What are P(A), and P(B) from the area of the blue shades, and the area of the dark shades respectively (calculate area of component rectangles)?
+- Change the P(A) slider.  
+     - What are P(AB) and p(Ab)?
+     - Verify that P(AB) = P(A) P(B).
+- Change the P(B) slider.
+     - What is P(B)?
+     - Verify that P(AB) = P(A) P(B).
+- Now change the odds ratio slider.
+     - Calculate P(AB), P(Ab), P(aB), and P(ab).
+     - Calculate the odds ratio.
+"""
+
+# ╔═╡ 59f2c969-4518-4f28-b16f-01f95a35d669
+md"""
+## Conditional probability
+
+The probability of B given A, denoted by P(B|A) is defined as
+
+$$P(B|A) = \frac{P(AB)}{P(A)}.$$
+
+- Calculate P(AB) and P(A) from the figure, and then P(B|A).
+- Similarly calculate P(A|B).
+"""
+
+
+# ╔═╡ ffab257f-dccb-4917-8b89-76d568a1d2d5
+md"""
+## Bayes Theorem
+
+Bayes Theorem expresses the conditional probability P(A|B) in terms of conditional probabilities.
+
+```math
+P(A|B) = \frac{P(AB)}{P(B)} = \frac{P(B|A) P(A)}{P(B)} 
+```
+
+```math
+\frac{P(A|B)}{P(a|B)} = \frac{P(B|A)}{P(B|a)} \frac{P(A)}{p(a)}
+```
+"""
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 
 [compat]
 CairoMakie = "~0.8.13"
 Distributions = "~0.25.71"
+LaTeXStrings = "~1.3.0"
 Pluto = "~0.19.11"
 PlutoUI = "~0.7.40"
+Roots = "~2.0.3"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.8.0"
+julia_version = "1.8.1"
 manifest_format = "2.0"
-project_hash = "d6433ced8c023d69392b2b540a344eb8798aec0b"
+project_hash = "cf87343f04afaa54ada7cd945776a39ff45f128a"
 
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra"]
@@ -268,6 +328,11 @@ git-tree-sha1 = "417b0ed7b8b838aa6ca0a87aadf1bb9eb111ce40"
 uuid = "5ae59095-9a9b-59fe-a467-6f913c188581"
 version = "0.12.8"
 
+[[deps.CommonSolve]]
+git-tree-sha1 = "332a332c97c7071600984b3c31d9067e1a4e6e25"
+uuid = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
+version = "0.2.1"
+
 [[deps.Compat]]
 deps = ["Dates", "LinearAlgebra", "UUIDs"]
 git-tree-sha1 = "5856d3031cdb1f3b2b6340dfdc66b6d9a149a374"
@@ -284,6 +349,12 @@ deps = ["ExproniconLite", "OrderedCollections", "TOML"]
 git-tree-sha1 = "62a7c76dbad02fdfdaa53608104edf760938c4ca"
 uuid = "5218b696-f38b-4ac9-8b61-a12ec717816d"
 version = "0.17.4"
+
+[[deps.ConstructionBase]]
+deps = ["LinearAlgebra"]
+git-tree-sha1 = "fb21ddd70a051d882a1686a5a550990bbe371a95"
+uuid = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
+version = "1.4.1"
 
 [[deps.Contour]]
 git-tree-sha1 = "d05d9e7b7aedff4e5b51a029dced05cfb6125781"
@@ -445,6 +516,10 @@ deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "aa31987c2ba8704e23c6c8ba8a4f769d5d7e4f91"
 uuid = "559328eb-81f9-559d-9380-de523a88c83c"
 version = "1.0.10+0"
+
+[[deps.Future]]
+deps = ["Random"]
+uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
 
 [[deps.FuzzyCompletions]]
 deps = ["REPL"]
@@ -761,6 +836,12 @@ git-tree-sha1 = "41d162ae9c868218b1f3fe78cba878aa348c2d26"
 uuid = "856f044c-d86e-5d09-b602-aeab76dc8ba7"
 version = "2022.1.0+0"
 
+[[deps.MacroTools]]
+deps = ["Markdown", "Random"]
+git-tree-sha1 = "3d3e902b31198a27340d0bf00d6ac452866021cf"
+uuid = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
+version = "0.5.9"
+
 [[deps.Makie]]
 deps = ["Animations", "Base64", "ColorBrewer", "ColorSchemes", "ColorTypes", "Colors", "Contour", "Distributions", "DocStringExtensions", "FFMPEG", "FileIO", "FixedPointNumbers", "Formatting", "FreeType", "FreeTypeAbstraction", "GeometryBasics", "GridLayoutBase", "ImageIO", "IntervalSets", "Isoband", "KernelDensity", "LaTeXStrings", "LinearAlgebra", "MakieCore", "Markdown", "Match", "MathTeXEngine", "Observables", "OffsetArrays", "Packing", "PlotUtils", "PolygonOps", "Printf", "Random", "RelocatableFolders", "Serialization", "Showoff", "SignedDistanceFields", "SparseArrays", "Statistics", "StatsBase", "StatsFuns", "StructArrays", "UnicodeFun"]
 git-tree-sha1 = "b0323393a7190c9bf5b03af442fc115756df8e59"
@@ -1065,6 +1146,12 @@ git-tree-sha1 = "68db32dff12bb6127bac73c209881191bf0efbb7"
 uuid = "f50d1b31-88e8-58de-be2c-1cc44531875f"
 version = "0.3.0+0"
 
+[[deps.Roots]]
+deps = ["CommonSolve", "Printf", "Setfield"]
+git-tree-sha1 = "90a03cebb786c568d3c1f0fb2f71dcb26115e13e"
+uuid = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
+version = "2.0.3"
+
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 version = "0.7.0"
@@ -1088,6 +1175,12 @@ version = "1.1.1"
 
 [[deps.Serialization]]
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
+
+[[deps.Setfield]]
+deps = ["ConstructionBase", "Future", "MacroTools", "StaticArraysCore"]
+git-tree-sha1 = "e2cc6d8c88613c05e1defb55170bf5ff211fbeac"
+uuid = "efcf1570-3423-57d1-acb7-fd33fddbac46"
+version = "1.1.1"
 
 [[deps.SharedArrays]]
 deps = ["Distributed", "Mmap", "Random", "Serialization"]
@@ -1399,11 +1492,14 @@ version = "3.5.0+0"
 
 # ╔═╡ Cell order:
 # ╟─c3344b73-51bd-4c59-a987-e0adfcc282ea
-# ╟─4402b992-343b-11ed-1a0c-274847cf71d9
+# ╟─5bccbb9b-e69f-4c30-93b8-57e2d153c772
 # ╟─1b945a07-252b-429f-bc29-437bb05ed1e8
 # ╟─cc8e9082-d5a8-4690-a7cb-26f366133834
-# ╟─7e45503d-8400-4eea-8257-6309d839926c
+# ╟─f6390f02-14ae-4ad1-9c46-9c1048877dee
+# ╟─6913a665-eeee-429c-8167-bb591329457e
 # ╟─671bbc56-63ca-42b9-8493-3f85f00b7137
-# ╟─4543e6b2-d177-499d-9954-a32c33570702
+# ╟─e7351cef-d7e6-4659-b385-de424b859265
+# ╟─59f2c969-4518-4f28-b16f-01f95a35d669
+# ╟─ffab257f-dccb-4917-8b89-76d568a1d2d5
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
