@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.11
 
 using Markdown
 using InteractiveUtils
@@ -31,7 +31,7 @@ begin
     	h = c ./ rowsum # heights
     	xpos = repeat(vec(cw),inner=nrow)
     	# return h
-    	tickval = vec(0:5)/5
+    	tickval = vec(0:10)/10
 
 		if(isnothing(colors))
 			colors = categorical_colors(:tab20,nrow*ncol)
@@ -39,11 +39,16 @@ begin
 		
 		f=Figure()
     	ax1 = Axis(f[1,1], xaxisposition = :top,
+			yaxisposition = :right,
 			xgridvisible=false, ygridvisible=false,
-			xticks = (cw.-vec(w)./2, 
-			string.(["",""])),
-			yticksvisible=false,
-			yticklabelsvisible=false)
+			yautolimitmargin=(0.0,0.0),
+        	xautolimitmargin=(0.0,0.0),
+			xticks = (tickval,string.(tickval)),
+			yticks = (tickval,string.(tickval)),
+			# xticks = (cw.-vec(w)./2, 
+			# string.(["",""])),
+			yticksvisible=true,
+			yticklabelsvisible=true)
     	ax2 = Axis( f[1,1], xlabel=xlabel, ylabel=ylabel, 
 			yautolimitmargin=(0.0,0.0),
         	xautolimitmargin=(0.0,0.0),
@@ -73,7 +78,7 @@ end
 
 # ╔═╡ c3344b73-51bd-4c59-a987-e0adfcc282ea
 md"""
-# Calculating probabilities and Bayes Theorem
+# Probability rules and Bayes Theorem
 
     Śaunak Sen
 	Division of Biostatistics
@@ -86,13 +91,19 @@ md"""
 md"""
 This document is an illustration of the rules of probability and Bayes Theorem for two events, which we denote by A and B.  For example, A could be the the event that someone has a disease, and B could be a positive test result.
 
-In the figure below, we indicate the event "A" in blue shades; orange shades indicate that A did not occur, indicated by "a".   The event "B" is indicated by dark shades, and the event that B did not occur by light shades, indicated by "b". The area of a rectangle is proportional to the probability of an event.  For example the chance that both A and B occured is denoted by the dark blue shade ("AB").
+In the figure below, we indicate the event "A" in blue shades; orange shades indicate that A did not occur, denoted by "a".   The event "B" is indicated by dark shades, and the event that B did not occur by light shades, denoted by "b". The area of a rectangle is proportional to the probability of an event.  For example the chance that both A and B occured is denoted by the dark blue shade ("AB").
 
 When you begin, the odds ratio is set to 1.  The odds ratio, which defines the strength of association between the two events, A and B, is defined as
 
 $$\frac{P(AB)}{P{(aB)}}\frac{P(ab)}{P(Ab)}$$
 
 Note that slider shows the odds ratio on the log2 scale, so 0, corresponds to an odds ratio of 2⁰=1.0; and 4 corresponds to an odds ratio of 2⁴=16; and so on.
+
+## Instructions
+
+Play with the sliders to create different scenarios varying P(A), P(B), and the strength of association between the events.  Then use the markers on the X and Y axis to calculate the size of the different rectangles, and you can verify the laws of probability.
+
+Note that some values of P(A), P(B) and the odds ration are not compatible, and in that case you will get an error message.  Use the "Reset values" button to get to the default values.
 """
 
 # ╔═╡ cc8e9082-d5a8-4690-a7cb-26f366133834
@@ -137,18 +148,18 @@ end
 md"""
 ## Rules of probability
 
-- With the the sliders are at their default values, check the following.
-    - What is the area corresponding to the event AB (multiply the sides of the rectangle)? 
-    - What are P(A), and P(B) from the area of the blue shades, and the area of the dark shades respectively (calculate area of component rectangles)?
-- Change the P(A) slider.  
-     - What are P(AB) and p(Ab)?
-     - Verify that P(AB) = P(A) P(B).
-- Change the P(B) slider.
-     - What is P(B)?
-     - Verify that P(AB) = P(A) P(B).
-- Now change the odds ratio slider.
-     - Calculate P(AB), P(Ab), P(aB), and P(ab).
-     - Calculate the odds ratio.
+- The probability of an event, A, is always greater than or equal to 0; 
+  $P(A)\geq 0$.
+- If two events, A and B, are disjoint, that is, cannot occur together 
+  then the probability that either of them occurs is the sum of 
+  their probabilities; $P(A \hbox{ or } B) = P(A) + P(B)$.
+- If B is the negation (or complement) of A, that is, if B 
+  denotes that A did not occur, then $P(A \hbox{ or } B) = P(A) + P(B) = 1$.
+
+## Product rule
+
+- If two events A and B are independent, then the probability that both 
+  of them occur simultaneously is $P(A \hbox{ and } B) = P(A)\times P(B)$.
 """
 
 # ╔═╡ 59f2c969-4518-4f28-b16f-01f95a35d669
@@ -1526,6 +1537,6 @@ version = "3.5.0+0"
 # ╟─e7351cef-d7e6-4659-b385-de424b859265
 # ╟─59f2c969-4518-4f28-b16f-01f95a35d669
 # ╟─ffab257f-dccb-4917-8b89-76d568a1d2d5
-# ╠═e0ddab87-29c0-4c83-b381-9406c58edcbd
+# ╟─e0ddab87-29c0-4c83-b381-9406c58edcbd
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

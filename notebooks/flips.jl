@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.11
 
 using Markdown
 using InteractiveUtils
@@ -50,7 +50,8 @@ This simulator allows you to vary three parameters of the simulation, as follows
 
 #### Number of replications
 
-- What if you enlisted another friend to flip a coin with you, repeating (replicating) what you did?  
+What if you enlisted another friend to flip a coin with you, repeating (replicating) what you did?
+
 - Increase the number of replications to 2. How close would your results be?  
 - Vary the number of flips.  Increase the number of replications (effectively the number of friends who are playing this game with you).  What do you see?
 
@@ -98,8 +99,16 @@ Here is what the first 10 flips for the first run looked like along with the cum
 """
 
 # ╔═╡ d890d4e9-58dd-4287-868a-f7cb336c7494
-pretty_table( hcat(1:n,x[:,1],xsum,xmean[:,1]),header=["flip #","# heads","cumulative heads","prop. of heads"])
+pretty_table( hcat(vec(1:n),x[:,1],xsum[:,1],round.(xmean[:,1],digits=2)), 
+	header=["flip #","# heads","cumulative heads","prop. of heads"])
 
+
+# ╔═╡ 1901bf6f-ac5a-459c-be52-b875e52aafe2
+md"""
+## Thanks
+
+Thanks to Gregory Farage and Tristan Hayes for helpful suggestions.
+"""
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -123,7 +132,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.1"
 manifest_format = "2.0"
-project_hash = "3f21198cac58052b3bf88a3ff0df21a3eab56959"
+project_hash = "f8f2952378978d7572c9df3a8a9013b9291d03b8"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -1167,5 +1176,6 @@ version = "1.4.1+0"
 # ╟─afbd6b81-1661-45f8-abb4-d7c348fa77c2
 # ╟─3f58b72b-28bd-4616-908e-50439ae12cd7
 # ╟─d890d4e9-58dd-4287-868a-f7cb336c7494
+# ╟─1901bf6f-ac5a-459c-be52-b875e52aafe2
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
