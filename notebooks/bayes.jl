@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.11
+# v0.19.9
 
 using Markdown
 using InteractiveUtils
@@ -67,18 +67,19 @@ begin
     
     	f
 	end
-end;
+	@bind doagain PlutoUI.Button("Reset values")
+end
 
 
 # ╔═╡ c3344b73-51bd-4c59-a987-e0adfcc282ea
 md"""
-# Bayes Theorem
+# Calculating probabilities and Bayes Theorem
 
     Śaunak Sen
 	Division of Biostatistics
 	Department of Preventive Medicine
 	University of Tennessee Health Science Center
-	2022-09-09
+	2022-09-20
 """
 
 # ╔═╡ 5bccbb9b-e69f-4c30-93b8-57e2d153c772
@@ -95,30 +96,42 @@ Note that slider shows the odds ratio on the log2 scale, so 0, corresponds to an
 """
 
 # ╔═╡ cc8e9082-d5a8-4690-a7cb-26f366133834
+begin
+	doagain
 md"""
-- P(A): 0.0 $(@bind A PlutoUI.Slider(0.0:0.1:1.00, default=0.5)) 1.0
-- P(B): 0.0 $(@bind B PlutoUI.Slider(0.0:0.1:1.00, default=0.5)) 1.0
+- P(A): 0.0 $(@bind A PlutoUI.Slider(0.01:0.01:0.99, default=0.4)) 1.0
+- P(B): 0.0 $(@bind B PlutoUI.Slider(0.01:0.01:0.99, default=0.6)) 1.0
 - log2 of odds ratio: -4 $(@bind log2OR PlutoUI.Slider(-4.0:1:4.0, default=0.0)) 4
 """
+end
 
 # ╔═╡ f6390f02-14ae-4ad1-9c46-9c1048877dee
 md"""
 You chose: P(A) = $A, P(B) = $B, and odds ratio = $(2.0^log2OR).
 """
 
-# ╔═╡ 6913a665-eeee-429c-8167-bb591329457e
-begin
+# ╔═╡ 198746b7-02f9-4196-a24d-f194d4d4842c
+	begin
 	R = 2.0^log2OR
 	f(x,A,B,R) = (x-A*B)/((A-x)*(B-x)) + 1 - R
-	AB = find_zeros(y->f(y,A,B,R), 0.0, A)[1]
-	Ab = A - AB
-	aB = B - AB
-	ab = 1 - A - B + AB
-	prob = [AB aB; Ab ab]
-end;
+	res = find_zeros(y->f(y,A,B,R), 0.0, A)
+	if(length(res)==0)
+		graph = false
+		println("Incompatible values; pick again.")
+	else
+		graph = true
+		AB = res[1]
+		Ab = A - AB
+		aB = B - AB
+		ab = 1 - A - B + AB
+		prob = [AB aB; Ab ab]
+	end
+	end;
 
 # ╔═╡ 671bbc56-63ca-42b9-8493-3f85f00b7137
-mosaic(prob,xnames=["A","a"],ynames=["B","b"])
+if(graph)
+	mosaic(prob,xnames=["A","a"],ynames=["B","b"])
+end
 
 # ╔═╡ e7351cef-d7e6-4659-b385-de424b859265
 md"""
@@ -161,9 +174,21 @@ Bayes Theorem expresses the conditional probability P(A|B) in terms of condition
 P(A|B) = \frac{P(AB)}{P(B)} = \frac{P(B|A) P(A)}{P(B)} 
 ```
 
+Equivalently,
 ```math
-\frac{P(A|B)}{P(a|B)} = \frac{P(B|A)}{P(B|a)} \frac{P(A)}{p(a)}
+\frac{P(A|B)}{P(a|B)} = \frac{P(A)}{P(a)} \frac{P(B|A)}{P(B|a)} 
 ```
+"""
+
+# ╔═╡ e0ddab87-29c0-4c83-b381-9406c58edcbd
+md"""
+More generally, if we have two hypotheses $H_0$ and $H_1$, and we have observed data, $y$, then
+
+$$\frac{P(H_1|y)}{P(H_0|y)} = \frac{P(H_1)}{P(H_0)} \times \frac{P(y|H_1)}{P(y|H_0)}.$$
+
+Thus the ratio of probability of two competing hypotheses after seeing the data (posterior odds), is the product of the ratio of probabilities of the hypotheses before seeing the data (prior odds) times the ratio of probability of the data given the two hypotheses (likelihood ratio).
+
+This forms the basis of Bayesian inference, and describes a rule for updating beliefs based on observed data.
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -192,7 +217,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.1"
 manifest_format = "2.0"
-project_hash = "cf87343f04afaa54ada7cd945776a39ff45f128a"
+project_hash = "a550497986d35346ecad5959b6be1dacedb1cc51"
 
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra"]
@@ -1496,10 +1521,11 @@ version = "3.5.0+0"
 # ╟─1b945a07-252b-429f-bc29-437bb05ed1e8
 # ╟─cc8e9082-d5a8-4690-a7cb-26f366133834
 # ╟─f6390f02-14ae-4ad1-9c46-9c1048877dee
-# ╟─6913a665-eeee-429c-8167-bb591329457e
+# ╟─198746b7-02f9-4196-a24d-f194d4d4842c
 # ╟─671bbc56-63ca-42b9-8493-3f85f00b7137
 # ╟─e7351cef-d7e6-4659-b385-de424b859265
 # ╟─59f2c969-4518-4f28-b16f-01f95a35d669
 # ╟─ffab257f-dccb-4917-8b89-76d568a1d2d5
+# ╠═e0ddab87-29c0-4c83-b381-9406c58edcbd
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

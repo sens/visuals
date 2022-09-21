@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.11
+# v0.19.9
 
 using Markdown
 using InteractiveUtils
@@ -16,7 +16,8 @@ end
 
 # ╔═╡ 82baa602-33e1-11ed-057d-31329c208077
 begin
-	using Distributions, Random, Plots, PlutoUI
+	using Distributions, Random, Plots, PlutoUI, PrettyTables
+	@bind doagain Button("Reset values")
 end
 
 # ╔═╡ 7bb5a5cf-e386-440a-9310-f72d95a38c43
@@ -27,7 +28,7 @@ md"""
 	Division of Biostatistics
 	Department of Preventive Medicine
 	University of Tennessee Health Science Center
-	2022-09-09
+	2022-09-20
 """
 
 # ╔═╡ 8c45a6ca-80c4-4066-8b5f-6fb28182e768
@@ -60,20 +61,21 @@ This simulator allows you to vary three parameters of the simulation, as follows
 """
 
 # ╔═╡ 2bd8490a-c0d6-4831-9e74-ea3f4b3888cb
+begin
+	doagain
 md"""
 - Number of flips, n: $(@bind n NumberField(1:1:100000, default=100)) 
 - Number of replications, m: $(@bind m NumberField(1:1:100, default=1))
 - Probability of head, p:
   0.0 $(@bind p Slider(0.0:0.01:1.00, default=0.5)) 1.0;
 """
+end
 
 # ╔═╡ f3f25991-92ac-4da5-b154-3ac3a7056a77
 md"""
-According to your selections, we have:
-- Number of flips, n=$n
-- Number of replications, m=$m
-- Probability of head, p = $p
+According to your selections, we have: number of flips, n = $(n); number of replications, m= $(m); and probability of heads, p = $(p).
 """
+
 
 # ╔═╡ e8c3325c-bf8d-494c-abe2-017e6a9c8ab8
 begin
@@ -90,18 +92,29 @@ begin
 	plot!(n->p-2*sqrt(p*(1-p)/n),0,n,color="grey75",lty=1,label="")
 end
 
+# ╔═╡ 3f58b72b-28bd-4616-908e-50439ae12cd7
+md"""
+Here is what the first 10 flips for the first run looked like along with the cumulative number of heads and the proportion of heads.
+"""
+
+# ╔═╡ d890d4e9-58dd-4287-868a-f7cb336c7494
+pretty_table( hcat(1:n,x[:,1],xsum,xmean[:,1]),header=["flip #","# heads","cumulative heads","prop. of heads"])
+
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [compat]
 Distributions = "~0.25.71"
 Plots = "~1.33.0"
 PlutoUI = "~0.7.40"
+PrettyTables = "~2.1.0"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -110,7 +123,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.1"
 manifest_format = "2.0"
-project_hash = "7691c0c3a7876441b543659bf6d4e7a11f36ee96"
+project_hash = "3f21198cac58052b3bf88a3ff0df21a3eab56959"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -204,6 +217,11 @@ git-tree-sha1 = "d05d9e7b7aedff4e5b51a029dced05cfb6125781"
 uuid = "d38c429a-6771-53c6-b99e-75d170b6e991"
 version = "0.6.2"
 
+[[deps.Crayons]]
+git-tree-sha1 = "249fe38abf76d48563e2f4556bebd215aa317e15"
+uuid = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
+version = "4.1.1"
+
 [[deps.DataAPI]]
 git-tree-sha1 = "fb5f5316dd3fd4c5e7c30a24d50643b73e37cd40"
 uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
@@ -214,6 +232,11 @@ deps = ["Compat", "InteractiveUtils", "OrderedCollections"]
 git-tree-sha1 = "d1fff3a548102f48987a52a2e0d114fa97d730f0"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 version = "0.18.13"
+
+[[deps.DataValueInterfaces]]
+git-tree-sha1 = "bfc1187b79289637fa0ef6d4436ebdfe6905cbd6"
+uuid = "e2d170a0-9d28-54be-80f0-106bbe20a464"
+version = "1.0.0"
 
 [[deps.Dates]]
 deps = ["Printf"]
@@ -405,6 +428,11 @@ version = "0.1.7"
 git-tree-sha1 = "7fd44fd4ff43fc60815f8e764c0f352b83c49151"
 uuid = "92d709cd-6900-40b7-9082-c6be49f344b6"
 version = "0.1.1"
+
+[[deps.IteratorInterfaceExtensions]]
+git-tree-sha1 = "a3f24677c21f5bbe9d2a714f95dcd58337fb2856"
+uuid = "82899510-4779-5014-852e-03e436cf321d"
+version = "1.0.0"
 
 [[deps.JLLWrappers]]
 deps = ["Preferences"]
@@ -689,6 +717,12 @@ git-tree-sha1 = "47e5f437cc0e7ef2ce8406ce1e7e24d44915f88d"
 uuid = "21216c6a-2e73-6563-6e65-726566657250"
 version = "1.3.0"
 
+[[deps.PrettyTables]]
+deps = ["Crayons", "Formatting", "Markdown", "Reexport", "StringManipulation", "Tables"]
+git-tree-sha1 = "a9caa954d7a39a45bbaeb0e0de3f45aef6377cfe"
+uuid = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
+version = "2.1.0"
+
 [[deps.Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
@@ -823,6 +857,11 @@ git-tree-sha1 = "5783b877201a82fc0014cbf381e7e6eb130473a4"
 uuid = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 version = "1.0.1"
 
+[[deps.StringManipulation]]
+git-tree-sha1 = "46da2434b41f41ac3594ee9816ce5541c6096123"
+uuid = "892a3eda-7b42-436c-8928-eab12a02cf0e"
+version = "0.3.0"
+
 [[deps.SuiteSparse]]
 deps = ["Libdl", "LinearAlgebra", "Serialization", "SparseArrays"]
 uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
@@ -831,6 +870,18 @@ uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 version = "1.0.0"
+
+[[deps.TableTraits]]
+deps = ["IteratorInterfaceExtensions"]
+git-tree-sha1 = "c06b2f539df1c6efa794486abfb6ed2022561a39"
+uuid = "3783bdb8-4a98-5b6b-af9a-565f29a5fe9c"
+version = "1.0.1"
+
+[[deps.Tables]]
+deps = ["DataAPI", "DataValueInterfaces", "IteratorInterfaceExtensions", "LinearAlgebra", "OrderedCollections", "TableTraits", "Test"]
+git-tree-sha1 = "7149a60b01bf58787a1b83dad93f90d4b9afbe5d"
+uuid = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
+version = "1.8.1"
 
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
@@ -1114,5 +1165,7 @@ version = "1.4.1+0"
 # ╟─f3f25991-92ac-4da5-b154-3ac3a7056a77
 # ╟─e8c3325c-bf8d-494c-abe2-017e6a9c8ab8
 # ╟─afbd6b81-1661-45f8-abb4-d7c348fa77c2
+# ╟─3f58b72b-28bd-4616-908e-50439ae12cd7
+# ╟─d890d4e9-58dd-4287-868a-f7cb336c7494
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
