@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.12
 
 using Markdown
 using InteractiveUtils
@@ -32,6 +32,18 @@ md"""
 	2022-09-09
 """
 
+# ╔═╡ c0a4fc12-4a91-42ed-9660-4e6190c53928
+md"""
+In the figures below we show the histogram from repeated samples from the mean of a sample size of n, from some common distributions:
+- normal
+- exponential
+- uniform
+- Cauchy
+The user can drag the n for sample size left or right to decrease/increase.  The user can also change the number of repetitions, although that is less important.
+
+We can see how the central tendency or mean remains fairly constant as the sample size increases, but the variance decreases.  For the symmetric distributions, the normal shape comes quite quickly (except for the Cauchy distribution).  The mean of the skewed exponential looks symmetric and normal as the sample size increases.
+"""
+
 # ╔═╡ 5ccbde34-9401-40b9-b6a9-39c7f7b7d64a
 md"""
 Sample size n: $(@bind n Scrubbable(1:1:100, default=1))
@@ -47,7 +59,7 @@ begin
 	X = randn(n,r)
 	X̄ =  mapslices(mean,X,dims=1) |> vec
 	histogram(X̄,xlim=(-3,3),label="",normalize=:density,color=:lightblue)
-	plot!(x->pdf(Normal(),x)*r,-3,3,color=:black)
+	plot!(x->pdf(Normal(),x)*r,-3,3,color=:black,label="normal distribution")
 end
 
 # ╔═╡ 33d4d79d-1208-4cc4-a7f5-1f6c3c05c0e7
@@ -55,7 +67,7 @@ begin
 	Y = rand(Exponential(),n,r)
 	Ȳ =  mapslices(mean,Y,dims=1) |> vec
 	histogram(Ȳ,xlim=(0,5),label="",normalize=:density,color=:lightblue)
-	plot!(y->pdf(Exponential(),y)*r,0,5,color=:black)
+	plot!(y->pdf(Exponential(),y)*r,0,5,color=:black,label="exponential distribution")
 end
 
 # ╔═╡ 93241e4c-e0ab-4396-a7d2-1b96cc23dd37
@@ -91,7 +103,7 @@ PlutoUI = "~0.7.40"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.8.0"
+julia_version = "1.8.1"
 manifest_format = "2.0"
 project_hash = "f7f1b85a50853c5738685f74eb0551bae2ee7108"
 
@@ -270,10 +282,10 @@ uuid = "c87230d0-a227-11e9-1b43-d7ebe4e7570a"
 version = "0.4.1"
 
 [[deps.FFMPEG_jll]]
-deps = ["Artifacts", "Bzip2_jll", "FreeType2_jll", "FriBidi_jll", "JLLWrappers", "LAME_jll", "Libdl", "Ogg_jll", "OpenSSL_jll", "Opus_jll", "Pkg", "Zlib_jll", "libaom_jll", "libass_jll", "libfdk_aac_jll", "libvorbis_jll", "x264_jll", "x265_jll"]
-git-tree-sha1 = "ccd479984c7838684b3ac204b716c89955c76623"
+deps = ["Artifacts", "Bzip2_jll", "FreeType2_jll", "FriBidi_jll", "JLLWrappers", "LAME_jll", "Libdl", "Ogg_jll", "OpenSSL_jll", "Opus_jll", "PCRE2_jll", "Pkg", "Zlib_jll", "libaom_jll", "libass_jll", "libfdk_aac_jll", "libvorbis_jll", "x264_jll", "x265_jll"]
+git-tree-sha1 = "74faea50c1d007c85837327f6775bea60b5492dd"
 uuid = "b22a6f82-2f65-5046-a5b2-351ab43fb4e5"
-version = "4.4.2+0"
+version = "4.4.2+2"
 
 [[deps.FileWatching]]
 uuid = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
@@ -656,6 +668,11 @@ version = "1.3.2+0"
 git-tree-sha1 = "85f8e6578bf1f9ee0d11e7bb1b1456435479d47c"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
 version = "1.4.1"
+
+[[deps.PCRE2_jll]]
+deps = ["Artifacts", "Libdl"]
+uuid = "efcefdf7-47ab-520b-bdef-62a2eaa19f15"
+version = "10.40.0+0"
 
 [[deps.PCRE_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1165,6 +1182,7 @@ version = "1.4.1+0"
 # ╔═╡ Cell order:
 # ╟─ef2627bc-30a7-11ed-29fb-395b23c794b4
 # ╟─b9eb712a-0329-49ba-9409-d5c5a155c112
+# ╟─c0a4fc12-4a91-42ed-9660-4e6190c53928
 # ╟─5ccbde34-9401-40b9-b6a9-39c7f7b7d64a
 # ╟─ca2994c2-a959-4f42-8f9a-0bc8376090d9
 # ╟─015937cd-a1e7-4c76-acbc-2378e03c6e89

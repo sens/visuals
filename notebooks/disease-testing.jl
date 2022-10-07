@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.11
 
 using Markdown
 using InteractiveUtils
@@ -14,24 +14,9 @@ macro bind(def, element)
     end
 end
 
-# ╔═╡ 4402b992-343b-11ed-1a0c-274847cf71d9
-begin
-	using Pluto,PlutoUI, CairoMakie, Random, Distributions
-end
-
-# ╔═╡ c3344b73-51bd-4c59-a987-e0adfcc282ea
-md"""
-# Bayes Theorem
-
-    Śaunak Sen
-	Division of Biostatistics
-	Department of Preventive Medicine
-	University of Tennessee Health Science Center
-	2022-09-09
-"""
-
 # ╔═╡ 1b945a07-252b-429f-bc29-437bb05ed1e8
 begin
+	using Pluto,PlutoUI, CairoMakie, Random, Distributions
 	function mosaic(c::Matrix{Float64};
 		xnames=1:size(c,2),ynames=1:size(c,1),
 		xlabel="",ylabel="",colors=nothing)
@@ -44,7 +29,7 @@ begin
     	h = c ./ rowsum # heights
     	xpos = repeat(vec(cw),inner=nrow)
     	# return h
-    	tickval = vec(0:5)/5
+    	tickval = vec(0:10)/10
 
 		if(isnothing(colors))
 			colors = categorical_colors(:tab20,nrow*ncol)
@@ -52,11 +37,16 @@ begin
 		
 		f=Figure()
     	ax1 = Axis(f[1,1], xaxisposition = :top,
+			yaxisposition = :right,
 			xgridvisible=false, ygridvisible=false,
-			xticks = (cw.-vec(w)./2, 
-			string.(xnames)),
-			yticksvisible=false,
-			yticklabelsvisible=false)
+			yautolimitmargin=(0.0,0.0),
+        	xautolimitmargin=(0.0,0.0),
+			xticks = (tickval,string.(tickval)),
+			yticks = (tickval,string.(tickval)),
+			# xticks = (cw.-vec(w)./2, 
+			# string.(["",""])),
+			yticksvisible=true,
+			yticklabelsvisible=true)
     	ax2 = Axis( f[1,1], xlabel=xlabel, ylabel=ylabel, 
 			yautolimitmargin=(0.0,0.0),
         	xautolimitmargin=(0.0,0.0),
@@ -82,13 +72,38 @@ begin
 	end
 end;
 
+# ╔═╡ c3344b73-51bd-4c59-a987-e0adfcc282ea
+md"""
+# Diagnostic tests: prevalence, sensitivity, specificity, and predictive values
+
+    Śaunak Sen
+	Division of Biostatistics
+	Department of Preventive Medicine
+	University of Tennessee Health Science Center
+	2022-09-09
+"""
+
+# ╔═╡ 2e4df950-926c-4064-a50c-243ff14363ff
+md"""
+Consider the problem of detecting a disease in a sample given the outcome of a test.  Whether the sample is diseased (D) or healthy (H) is the unknown state of nature.  We want to know this unknown state based on observed data which is a test result which can be positive (+) or negative (-).  Based on the observed data (test result) we want to know what the likely state of nature is (diseased or healthy sample).  It is a simple version of inductive inference.
+
+We display the impact of prevalence, P(D); sensitivity P(+|D); and specificity P(-|H) on positive and negative predictive values, P(D|+) and P(H|-) respectively.  The user can choose the sensitivity, specificity, and prevalence using the sliders below.
+"""
+
+# ╔═╡ e6fcdc27-d0e1-4719-b05c-29e8a8e911dd
+@bind doagain PlutoUI.Button("Reset values")
 
 # ╔═╡ cc8e9082-d5a8-4690-a7cb-26f366133834
+begin
+doagain
 md"""
-- Disease prevalance p: 0.0 $(@bind pD PlutoUI.Slider(0.0:0.01:1.00, default=0.1)) 1.0
-- Sensitivity sens: 0.0 $(@bind sens PlutoUI.Slider(0.0:0.01:1.00, default=0.9)) 1.0
-- Specificity spec: 0.0 $(@bind spec PlutoUI.Slider(0.0:0.01:1.00, default=0.9)) 1.0
+| Parameter | Slider | 
+| ------------ | --------- | 
+| Disease prevalance | 0.0 $(@bind pD PlutoUI.Slider(0.0:0.01:1.00, default=0.1)) 1.0 | 
+| Sensitivity | 0.0 $(@bind sens PlutoUI.Slider(0.0:0.01:1.00, default=0.9)) 1.0 |
+| Specificity | 0.0 $(@bind spec PlutoUI.Slider(0.0:0.01:1.00, default=0.9)) 1.0 |
 """
+end
 
 # ╔═╡ 7e45503d-8400-4eea-8257-6309d839926c
 begin
@@ -98,17 +113,32 @@ begin
 	pDandt = pD - pDandT
 	pdandT = pd - pdandt
 	prob = [pDandT pdandT; pDandt pdandt]
+
+md"""
+You chose: prevalence = $pD | sensitivity = $sens | specificity = $spec
+
+In the mosaic plot (aka spine plot) below blue shades represent diseased samples and orange shades represent healthy samples.  Samples testing positive are in darker shades, and samples testing negative are in light shades.  We can read off the prevalence from the width of the diseased "spine", and the height of the dark blue bar is sensitivity, and the height of the light orange bar is the specificity.
+"""
+end
+
+# ╔═╡ 482d8897-8a31-443f-99d1-a33a7dcecd2c
+begin
+        f1 = mosaic(prob,xnames=["D","H"],ynames=["+","-"])
+        colscheme = categorical_colors(:tab20,4)
+        f2 = mosaic( permutedims(prob), ynames=["D","H"],
+                xnames=["+","-"], colors=colscheme[[1 3 2 4]] )
 end;
 
-# ╔═╡ 671bbc56-63ca-42b9-8493-3f85f00b7137
-mosaic(prob,xnames=["D","H"],ynames=["+","-"])
+# ╔═╡ 72039e93-3274-4e20-aead-adc911ffe166
+f1
 
-# ╔═╡ 4543e6b2-d177-499d-9954-a32c33570702
-begin
-	colscheme = categorical_colors(:tab20,4)
-	mosaic( permutedims(prob), ynames=["D","H"],
-		xnames=["+","-"], colors=colscheme[[1 3 2 4]] )
-end
+# ╔═╡ a01863b3-14e5-4455-ba45-91459ac41941
+md"""
+The spine plot below has the same information arrayed diferently.  The areas of all rectanges are the same, but the aspect ratios are different.  The left spine is now for those testing positive, and the right spine is for those testing negative.  The height of the dark blue bar is the positive predictive value, and the height of the light orange bar is the negative predictive value.
+"""
+
+# ╔═╡ 9965907e-4ff7-4088-b18a-73c27a85738d
+f2
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -121,18 +151,18 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [compat]
 CairoMakie = "~0.8.13"
-Distributions = "~0.25.71"
-Pluto = "~0.19.11"
-PlutoUI = "~0.7.40"
+Distributions = "~0.25.75"
+Pluto = "~0.19.12"
+PlutoUI = "~0.7.43"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.8.0"
+julia_version = "1.8.1"
 manifest_format = "2.0"
-project_hash = "d6433ced8c023d69392b2b540a344eb8798aec0b"
+project_hash = "1b7f65dc6d126b89c73035e51b90974a23e00028"
 
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra"]
@@ -185,6 +215,11 @@ version = "1.0.1"
 [[deps.Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
+[[deps.BitFlags]]
+git-tree-sha1 = "84259bb6172806304b9101094a7cc4bc6f56dbc6"
+uuid = "d1d4a3ce-64b1-5f1a-9ba4-7e7e69966f35"
+version = "0.1.5"
+
 [[deps.Bzip2_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "19a35467a82e236ff51bc17a3a44b69ef35185a2"
@@ -222,9 +257,9 @@ version = "0.5.1"
 
 [[deps.ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "dc4405cee4b2fe9e1108caec2d760b7ea758eca2"
+git-tree-sha1 = "e7ff6cadf743c098e08fca25c91103ee4303c9bb"
 uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-version = "1.15.5"
+version = "1.15.6"
 
 [[deps.ChangesOfVariables]]
 deps = ["ChainRulesCore", "LinearAlgebra", "Test"]
@@ -291,9 +326,9 @@ uuid = "d38c429a-6771-53c6-b99e-75d170b6e991"
 version = "0.6.2"
 
 [[deps.DataAPI]]
-git-tree-sha1 = "fb5f5316dd3fd4c5e7c30a24d50643b73e37cd40"
+git-tree-sha1 = "1106fa7e1256b402a86a8e7b15c00c85036fef49"
 uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
-version = "1.10.0"
+version = "1.11.0"
 
 [[deps.DataStructures]]
 deps = ["Compat", "InteractiveUtils", "OrderedCollections"]
@@ -322,9 +357,9 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[deps.Distributions]]
 deps = ["ChainRulesCore", "DensityInterface", "FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SparseArrays", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns", "Test"]
-git-tree-sha1 = "ee407ce31ab2f1bacadc3bd987e96de17e00aed3"
+git-tree-sha1 = "0d7d213133d948c56e8c2d9f4eab0293491d8e4a"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.25.71"
+version = "0.25.75"
 
 [[deps.DocStringExtensions]]
 deps = ["LibGit2"]
@@ -345,9 +380,9 @@ version = "0.6.8"
 
 [[deps.EarCut_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "3f3a2501fa7236e9b911e0f7a588c657e822bb6d"
+git-tree-sha1 = "e3290f2d49e661fbd94046d7e3726ffcb2d41053"
 uuid = "5ae413db-bbd1-5e63-b57d-d24a61df00f5"
-version = "2.2.3+0"
+version = "2.2.4+0"
 
 [[deps.Expat_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -460,9 +495,9 @@ version = "1.0.1"
 
 [[deps.GeometryBasics]]
 deps = ["EarCut_jll", "GeoInterface", "IterTools", "LinearAlgebra", "StaticArrays", "StructArrays", "Tables"]
-git-tree-sha1 = "a7a97895780dab1085a97769316aa348830dc991"
+git-tree-sha1 = "12a584db96f1d460421d5fb8860822971cdb8455"
 uuid = "5c1252a2-5f33-56bf-86c9-59e7332b4326"
-version = "0.4.3"
+version = "0.4.4"
 
 [[deps.Gettext_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "Libiconv_jll", "Pkg", "XML2_jll"]
@@ -471,10 +506,10 @@ uuid = "78b55507-aeef-58d4-861c-77aaff3498b1"
 version = "0.21.0+0"
 
 [[deps.Glib_jll]]
-deps = ["Artifacts", "Gettext_jll", "JLLWrappers", "Libdl", "Libffi_jll", "Libiconv_jll", "Libmount_jll", "PCRE_jll", "Pkg", "Zlib_jll"]
-git-tree-sha1 = "a32d672ac2c967f3deb8a81d828afc739c838a06"
+deps = ["Artifacts", "Gettext_jll", "JLLWrappers", "Libdl", "Libffi_jll", "Libiconv_jll", "Libmount_jll", "PCRE2_jll", "Pkg", "Zlib_jll"]
+git-tree-sha1 = "61c566fbd29b42c9a58e7998ff69b2268a205364"
 uuid = "7746bdde-850d-59dc-9ae8-88ece973131d"
-version = "2.68.3+2"
+version = "2.74.0+0"
 
 [[deps.Graphics]]
 deps = ["Colors", "LinearAlgebra", "NaNMath"]
@@ -500,10 +535,10 @@ uuid = "42e2da0e-8278-4e71-bc24-59509adca0fe"
 version = "1.0.2"
 
 [[deps.HTTP]]
-deps = ["Base64", "CodecZlib", "Dates", "IniFile", "Logging", "LoggingExtras", "MbedTLS", "NetworkOptions", "Random", "SimpleBufferStream", "Sockets", "URIs", "UUIDs"]
-git-tree-sha1 = "59ba44e0aa49b87a8c7a8920ec76f8afe87ed502"
+deps = ["Base64", "CodecZlib", "Dates", "IniFile", "Logging", "LoggingExtras", "MbedTLS", "NetworkOptions", "OpenSSL", "Random", "SimpleBufferStream", "Sockets", "URIs", "UUIDs"]
+git-tree-sha1 = "4abede886fcba15cd5fd041fef776b230d004cee"
 uuid = "cd3eb016-35fb-5094-929b-558a96fad6f3"
-version = "1.3.3"
+version = "1.4.0"
 
 [[deps.HarfBuzz_jll]]
 deps = ["Artifacts", "Cairo_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll", "Graphite2_jll", "JLLWrappers", "Libdl", "Libffi_jll", "Pkg"]
@@ -795,9 +830,9 @@ version = "0.4.3"
 
 [[deps.MbedTLS]]
 deps = ["Dates", "MbedTLS_jll", "MozillaCACerts_jll", "Random", "Sockets"]
-git-tree-sha1 = "ae6676d5f576ccd21b6789c2cbe2ba24fcc8075d"
+git-tree-sha1 = "6872f9594ff273da6d13c7c1a1545d5a8c7d0c1c"
 uuid = "739be429-bea8-5141-9913-cc70e7f3736d"
-version = "1.1.5"
+version = "1.1.6"
 
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -884,6 +919,12 @@ deps = ["Artifacts", "Libdl"]
 uuid = "05823500-19ac-5b8b-9628-191a04bc5112"
 version = "0.8.1+0"
 
+[[deps.OpenSSL]]
+deps = ["BitFlags", "Dates", "MozillaCACerts_jll", "OpenSSL_jll", "Sockets"]
+git-tree-sha1 = "02be9f845cb58c2d6029a6d5f67f4e0af3237814"
+uuid = "4d8831e6-92b7-49fb-bdf8-b643e874388c"
+version = "1.1.3"
+
 [[deps.OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "e60321e3f2616584ff98f0a4f18d98ae6f89bbb3"
@@ -907,11 +948,10 @@ git-tree-sha1 = "85f8e6578bf1f9ee0d11e7bb1b1456435479d47c"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
 version = "1.4.1"
 
-[[deps.PCRE_jll]]
-deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "b2a7af664e098055a7529ad1a900ded962bca488"
-uuid = "2f80f16e-611a-54ab-bc61-aa92de5b98fc"
-version = "8.44.0+0"
+[[deps.PCRE2_jll]]
+deps = ["Artifacts", "Libdl"]
+uuid = "efcefdf7-47ab-520b-bdef-62a2eaa19f15"
+version = "10.40.0+0"
 
 [[deps.PDMats]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse"]
@@ -939,9 +979,9 @@ version = "0.5.11"
 
 [[deps.Pango_jll]]
 deps = ["Artifacts", "Cairo_jll", "Fontconfig_jll", "FreeType2_jll", "FriBidi_jll", "Glib_jll", "HarfBuzz_jll", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "3a121dfbba67c94a5bec9dde613c3d0cbcf3a12b"
+git-tree-sha1 = "84a314e3926ba9ec66ac097e3635e270986b0f10"
 uuid = "36c8627f-9965-5494-a995-c6b170f724f3"
-version = "1.50.3+0"
+version = "1.50.9+0"
 
 [[deps.Parsers]]
 deps = ["Dates"]
@@ -974,15 +1014,15 @@ version = "1.3.1"
 
 [[deps.Pluto]]
 deps = ["Base64", "Configurations", "Dates", "Distributed", "FileWatching", "FuzzyCompletions", "HTTP", "HypertextLiteral", "InteractiveUtils", "Logging", "MIMEs", "Markdown", "MsgPack", "Pkg", "PrecompileSignatures", "REPL", "RelocatableFolders", "Sockets", "TOML", "Tables", "URIs", "UUIDs"]
-git-tree-sha1 = "c189ae928e2cfc3495b13e85d9e90ddedeac0a4d"
+git-tree-sha1 = "ec10219bc0b9a2c26c342abdb955ba82ebd90825"
 uuid = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
-version = "0.19.11"
+version = "0.19.12"
 
 [[deps.PlutoUI]]
 deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "Markdown", "Random", "Reexport", "UUIDs"]
-git-tree-sha1 = "a602d7b0babfca89005da04d89223b867b55319f"
+git-tree-sha1 = "2777a5c2c91b3145f5aa75b61bb4c2eb38797136"
 uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
-version = "0.7.40"
+version = "0.7.43"
 
 [[deps.PolygonOps]]
 git-tree-sha1 = "77b3d3605fc1cd0b42d95eba87dfcd2bf67d5ff6"
@@ -1148,14 +1188,14 @@ version = "0.1.1"
 
 [[deps.StaticArrays]]
 deps = ["LinearAlgebra", "Random", "StaticArraysCore", "Statistics"]
-git-tree-sha1 = "efa8acd030667776248eabb054b1836ac81d92f0"
+git-tree-sha1 = "2189eb2c1f25cb3f43e5807f26aa864052e50c17"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "1.5.7"
+version = "1.5.8"
 
 [[deps.StaticArraysCore]]
-git-tree-sha1 = "ec2bd695e905a3c755b33026954b119ea17f2d22"
+git-tree-sha1 = "6b7ba252635a5eff6a0b0664a41ee140a1c9e72a"
 uuid = "1e83bf80-4336-4d27-bf5d-d5a4f845583c"
-version = "1.3.0"
+version = "1.4.0"
 
 [[deps.Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
@@ -1202,9 +1242,9 @@ version = "1.0.1"
 
 [[deps.Tables]]
 deps = ["DataAPI", "DataValueInterfaces", "IteratorInterfaceExtensions", "LinearAlgebra", "OrderedCollections", "TableTraits", "Test"]
-git-tree-sha1 = "5ce79ce186cc678bbb5c5681ca3379d1ddae11a1"
+git-tree-sha1 = "2d7164f7b8a066bcfa6224e67736ce0eb54aef5b"
 uuid = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
-version = "1.7.0"
+version = "1.9.0"
 
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
@@ -1399,11 +1439,14 @@ version = "3.5.0+0"
 
 # ╔═╡ Cell order:
 # ╟─c3344b73-51bd-4c59-a987-e0adfcc282ea
-# ╟─4402b992-343b-11ed-1a0c-274847cf71d9
 # ╟─1b945a07-252b-429f-bc29-437bb05ed1e8
+# ╟─2e4df950-926c-4064-a50c-243ff14363ff
+# ╟─e6fcdc27-d0e1-4719-b05c-29e8a8e911dd
 # ╟─cc8e9082-d5a8-4690-a7cb-26f366133834
 # ╟─7e45503d-8400-4eea-8257-6309d839926c
-# ╟─671bbc56-63ca-42b9-8493-3f85f00b7137
-# ╟─4543e6b2-d177-499d-9954-a32c33570702
+# ╟─482d8897-8a31-443f-99d1-a33a7dcecd2c
+# ╟─72039e93-3274-4e20-aead-adc911ffe166
+# ╟─a01863b3-14e5-4455-ba45-91459ac41941
+# ╟─9965907e-4ff7-4088-b18a-73c27a85738d
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
