@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.11
+# v0.19.12
 
 using Markdown
 using InteractiveUtils
@@ -136,8 +136,20 @@ You chose: P(A) = $A, P(B) = $B, and odds ratio = $(2.0^log2OR).
 		aB = B - AB
 		ab = 1 - A - B + AB
 		prob = [AB aB; Ab ab]
+		a = 1-A
+		b = 1-B
 	end
 	end;
+
+# ╔═╡ ff338044-869b-4a50-a28b-e5572fa04784
+let
+	(AB=AB,aB=aB,Ab=Ab,ab=ab)
+end
+
+# ╔═╡ 3b2c558c-6a73-42ed-a1f5-e114548325b8
+let
+	("P(B|A)"=>(AB/A),"P(B|a)"=>(aB/a),"P(A|B)"=>(AB/B),"P(A|b)"=>(Ab/b))
+end
 
 # ╔═╡ 671bbc56-63ca-42b9-8493-3f85f00b7137
 if(graph)
@@ -479,10 +491,10 @@ uuid = "c87230d0-a227-11e9-1b43-d7ebe4e7570a"
 version = "0.4.1"
 
 [[deps.FFMPEG_jll]]
-deps = ["Artifacts", "Bzip2_jll", "FreeType2_jll", "FriBidi_jll", "JLLWrappers", "LAME_jll", "Libdl", "Ogg_jll", "OpenSSL_jll", "Opus_jll", "Pkg", "Zlib_jll", "libaom_jll", "libass_jll", "libfdk_aac_jll", "libvorbis_jll", "x264_jll", "x265_jll"]
-git-tree-sha1 = "ccd479984c7838684b3ac204b716c89955c76623"
+deps = ["Artifacts", "Bzip2_jll", "FreeType2_jll", "FriBidi_jll", "JLLWrappers", "LAME_jll", "Libdl", "Ogg_jll", "OpenSSL_jll", "Opus_jll", "PCRE2_jll", "Pkg", "Zlib_jll", "libaom_jll", "libass_jll", "libfdk_aac_jll", "libvorbis_jll", "x264_jll", "x265_jll"]
+git-tree-sha1 = "74faea50c1d007c85837327f6775bea60b5492dd"
 uuid = "b22a6f82-2f65-5046-a5b2-351ab43fb4e5"
-version = "4.4.2+0"
+version = "4.4.2+2"
 
 [[deps.FFTW]]
 deps = ["AbstractFFTs", "FFTW_jll", "LinearAlgebra", "MKL_jll", "Preferences", "Reexport"]
@@ -1024,6 +1036,11 @@ git-tree-sha1 = "85f8e6578bf1f9ee0d11e7bb1b1456435479d47c"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
 version = "1.4.1"
 
+[[deps.PCRE2_jll]]
+deps = ["Artifacts", "Libdl"]
+uuid = "efcefdf7-47ab-520b-bdef-62a2eaa19f15"
+version = "10.40.0+0"
+
 [[deps.PCRE_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "b2a7af664e098055a7529ad1a900ded962bca488"
@@ -1532,7 +1549,9 @@ version = "3.5.0+0"
 # ╟─1b945a07-252b-429f-bc29-437bb05ed1e8
 # ╟─cc8e9082-d5a8-4690-a7cb-26f366133834
 # ╟─f6390f02-14ae-4ad1-9c46-9c1048877dee
-# ╟─198746b7-02f9-4196-a24d-f194d4d4842c
+# ╠═198746b7-02f9-4196-a24d-f194d4d4842c
+# ╠═ff338044-869b-4a50-a28b-e5572fa04784
+# ╠═3b2c558c-6a73-42ed-a1f5-e114548325b8
 # ╟─671bbc56-63ca-42b9-8493-3f85f00b7137
 # ╟─e7351cef-d7e6-4659-b385-de424b859265
 # ╟─59f2c969-4518-4f28-b16f-01f95a35d669

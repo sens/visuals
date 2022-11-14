@@ -36,12 +36,12 @@ md"""
 md"""
 In the figures below we show the histogram from repeated samples from the mean of a sample size of n, from some common distributions:
 - normal
-- exponential
 - uniform
+- exponential
 - Cauchy
-The user can drag the n for sample size left or right to decrease/increase.  The user can also change the number of repetitions, although that is less important.
+The user can drag the n for sample size left or right to decrease/increase.  The user can also change the number of repetitions, although that is less important. The probability density function of the parent distribution is the smooth black curve.
 
-We can see how the central tendency or mean remains fairly constant as the sample size increases, but the variance decreases.  For the symmetric distributions, the normal shape comes quite quickly (except for the Cauchy distribution).  The mean of the skewed exponential looks symmetric and normal as the sample size increases.
+We can see how the central tendency (arithmetic mean) remains fairly constant as the sample size increases, but the variance decreases.  For the symmetric distributions, the normal shape comes quite quickly (except for the Cauchy distribution).  The mean of the skewed exponential looks symmetric and normal as the sample size increases.
 """
 
 # ╔═╡ 5ccbde34-9401-40b9-b6a9-39c7f7b7d64a
@@ -62,20 +62,20 @@ begin
 	plot!(x->pdf(Normal(),x)*r,-3,3,color=:black,label="normal distribution")
 end
 
-# ╔═╡ 33d4d79d-1208-4cc4-a7f5-1f6c3c05c0e7
-begin
-	Y = rand(Exponential(),n,r)
-	Ȳ =  mapslices(mean,Y,dims=1) |> vec
-	histogram(Ȳ,xlim=(0,5),label="",normalize=:density,color=:lightblue)
-	plot!(y->pdf(Exponential(),y)*r,0,5,color=:black,label="exponential distribution")
-end
-
 # ╔═╡ 93241e4c-e0ab-4396-a7d2-1b96cc23dd37
 let
 	Y = rand(Uniform(-sqrt(3),sqrt(3)),n,r)
 	Ȳ =  mapslices(mean,Y,dims=1) |> vec
 	histogram(Ȳ,xlim=(-3,3),label="",normalize=:density,color=:lightblue)
 	plot!(y->pdf(Uniform(-sqrt(3),sqrt(3)),y)*r,-3,3,color=:black,label="Uniform distribution")
+end
+
+# ╔═╡ 33d4d79d-1208-4cc4-a7f5-1f6c3c05c0e7
+begin
+	Y = rand(Exponential(),n,r)
+	Ȳ =  mapslices(mean,Y,dims=1) |> vec
+	histogram(Ȳ,xlim=(0,5),label="",normalize=:density,color=:lightblue)
+	plot!(y->pdf(Exponential(),y)*r,0,5,color=:black,label="exponential distribution")
 end
 
 # ╔═╡ 3a764831-2ae1-4757-8d9b-ae05f2c024d0
@@ -1186,8 +1186,8 @@ version = "1.4.1+0"
 # ╟─5ccbde34-9401-40b9-b6a9-39c7f7b7d64a
 # ╟─ca2994c2-a959-4f42-8f9a-0bc8376090d9
 # ╟─015937cd-a1e7-4c76-acbc-2378e03c6e89
-# ╟─33d4d79d-1208-4cc4-a7f5-1f6c3c05c0e7
 # ╟─93241e4c-e0ab-4396-a7d2-1b96cc23dd37
+# ╟─33d4d79d-1208-4cc4-a7f5-1f6c3c05c0e7
 # ╟─3a764831-2ae1-4757-8d9b-ae05f2c024d0
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
