@@ -46,13 +46,6 @@ Play around with the sliders:
 - False positive rate: If you increase false positive rate, you increase power.  The trick is to find a balance between the two.
 """
 
-╔═╡ 05d438b8-1d26-44d2-a0bf-c32e7aedc759
-begin 
-using Pkg 
-	Pkg.upgrade_manifest()
-	Pkg.resolve()
-end
-
 # ╔═╡ 26160436-409f-41f0-8cf9-f59420b9b4c5
 # power function for normal distribution
 # μ is mean under null
