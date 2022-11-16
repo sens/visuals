@@ -99,7 +99,6 @@ On the right panel, we see the ROC curve as we vary the cutoff for different fal
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
-Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 QuadGK = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
@@ -117,7 +116,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.2"
 manifest_format = "2.0"
-project_hash = "cfc95677f7ba6bdd91267b0248aba4dcfb9c3848"
+project_hash = "8c0677bab5224e6835a350d5a031c8d89b27aa5c"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -1148,8 +1147,7 @@ version = "1.4.1+0"
 
 # ╔═╡ Cell order:
 # ╟─33afb7f3-e52a-4f49-8be2-8634c66db010
-# ╠═56c9024e-dc9c-4b3f-ae1b-f0abf1d51a49
-# ╠═70919378-b4d7-11eb-2d76-db01c83f87b8
+# ╟─70919378-b4d7-11eb-2d76-db01c83f87b8
 # ╟─1d5602ee-5f7b-42ec-b8e0-c9f2bd2c5b94
 # ╟─b4ea9dc9-f138-455f-86a4-cc1d191a34b2
 # ╟─f33de1eb-8d69-42f4-b3f5-5d24c074b455
