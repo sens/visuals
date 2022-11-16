@@ -14,12 +14,6 @@ macro bind(def, element)
     end
 end
 
-# ╔═╡ 56c9024e-dc9c-4b3f-ae1b-f0abf1d51a49
-begin 
-	using Pkg
-	Pkg.upgrade_manifest()
-end
-
 # ╔═╡ 70919378-b4d7-11eb-2d76-db01c83f87b8
 begin
 	using Distributions
