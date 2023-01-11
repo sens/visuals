@@ -14,15 +14,6 @@ macro bind(def, element)
     end
 end
 
-# ╔═╡ 812a8ad6-afd1-4627-a84e-adab6799160d
-begin
-	using Pkg
-	# Pkg.upgrade_manifest()
-	Pkg.resolve()
-	Pkg.update()
-end
-
-
 # ╔═╡ b9eb712a-0329-49ba-9409-d5c5a155c112
 begin
 	using Distributions
@@ -99,7 +90,6 @@ end
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
-Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
@@ -115,7 +105,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.1"
 manifest_format = "2.0"
-project_hash = "93d830cb06c257ea52438db82d60ac347d03711a"
+project_hash = "f7f1b85a50853c5738685f74eb0551bae2ee7108"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -1210,7 +1200,6 @@ version = "1.4.1+0"
 # ╔═╡ Cell order:
 # ╟─ef2627bc-30a7-11ed-29fb-395b23c794b4
 # ╟─b9eb712a-0329-49ba-9409-d5c5a155c112
-# ╠═812a8ad6-afd1-4627-a84e-adab6799160d
 # ╟─c0a4fc12-4a91-42ed-9660-4e6190c53928
 # ╟─5ccbde34-9401-40b9-b6a9-39c7f7b7d64a
 # ╟─ca2994c2-a959-4f42-8f9a-0bc8376090d9
