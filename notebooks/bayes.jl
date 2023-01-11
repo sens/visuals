@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.12
+# v0.19.14
 
 using Markdown
 using InteractiveUtils
@@ -838,9 +838,9 @@ version = "1.42.0+0"
 
 [[deps.Libiconv_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "42b62845d70a619f063a7da093d995ec8e15e778"
+git-tree-sha1 = "c7cb1f5d892775ba13767a87c7ada0b980ea0a71"
 uuid = "94ce4f54-9a6c-5748-9c1c-f9c7231a4531"
-version = "1.16.1+1"
+version = "1.16.1+2"
 
 [[deps.Libmount_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1549,9 +1549,9 @@ version = "3.5.0+0"
 # ╟─1b945a07-252b-429f-bc29-437bb05ed1e8
 # ╟─cc8e9082-d5a8-4690-a7cb-26f366133834
 # ╟─f6390f02-14ae-4ad1-9c46-9c1048877dee
-# ╠═198746b7-02f9-4196-a24d-f194d4d4842c
-# ╠═ff338044-869b-4a50-a28b-e5572fa04784
-# ╠═3b2c558c-6a73-42ed-a1f5-e114548325b8
+# ╟─198746b7-02f9-4196-a24d-f194d4d4842c
+# ╟─ff338044-869b-4a50-a28b-e5572fa04784
+# ╟─3b2c558c-6a73-42ed-a1f5-e114548325b8
 # ╟─671bbc56-63ca-42b9-8493-3f85f00b7137
 # ╟─e7351cef-d7e6-4659-b385-de424b859265
 # ╟─59f2c969-4518-4f28-b16f-01f95a35d669
