@@ -26,5 +26,22 @@ function intersect_strain(gn_df::DataFrame, phn_df::DataFrame; pheno_strain_col 
         )
 end
 
+"""
+get_bxdtrait_description(trait_str, trait_description_df)
+
+Return dataframe containing the description of trait if they exists.
+
+# Arguments
+- `trait_str`: name of the trait.
+- `trait_description_df`: dataframes containing the descrption of traits.
+
+"""
+function get_bxdtrait_description(trait_str, trait_description_df)
+	index = findfirst(isequal(trait_str),trait_description_df.trait)
+	description = trait_description_df[index, "description"]
+	
+	return description
+end
+
 
 
