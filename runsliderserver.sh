@@ -19,4 +19,5 @@ import PlutoSliderServer;
 PlutoSliderServer.run_directory(\"notebooks/\", SliderServer_port=${1},SliderServer_host=\"${2}\")
 "
 echo ${command}
-julia --optimize=0 -e "${command}"
+# /home/sen/software/julia/julia-1.6.2/bin/julia -t 16 -e "${command}"
+julia -t 16 -e "${command}"
