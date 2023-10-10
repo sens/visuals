@@ -3,8 +3,8 @@ baked_notebookfile = true
 
 [SliderServer]
 port = 2345
-# host = "0.0.0.0"
-host = "172.21.170.177"
+host = "0.0.0.0"
+# host = "172.21.170.177"
 
 # You can also set Pluto's configuration here:
 [Pluto]

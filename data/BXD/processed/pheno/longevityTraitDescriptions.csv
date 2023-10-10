@@ -1,0 +1,8 @@
+trait,description
+BDL_10001,"Aging, metabolism: Age at death, natural or sacrificed [days]"
+BDL_10002,"Aging, metabolism: Lifespan, longevity (values exclude accidental deaths or cases sacrificed for tissue collection) [days]"
+BDL_10003,"Aging, metabolism, morphology: Body weight at 6 months of age [g]"
+BDL_10004,"Aging, metabolism, morphology: Body weight at 12 months of age [g]"
+BDL_10010,"Cofactor, metadata: Sex, where female = 1 and male = 0 [Sex]"
+BDL_10011,"Cofactor, metadata: Diet, 0 = low fat standard chow diet (CD, 6% calories from fat), 1 = high fat lard diet (HFD, 60% calories from fat), 2 = 1% nicotinamide added to HFD (NAM) [ordinal]"
+BDL_10012,"Cofactor, metadata: Age at start of diet (all chow diet cases actually on diet from weaning) [days]"
