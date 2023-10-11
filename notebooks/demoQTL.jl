@@ -58,7 +58,15 @@ md"""
 
 # ╔═╡ ca0aed28-d837-4f2d-8dfc-c9d1768474d8
 begin
-	dataset_options = ["Clinical Phenotypic Traits","UTHSC BXD Young Aged Eye RNA-Seq (Apr22) DESeq2 rlog2", "BXD-Longevity Phenotypes"]
+	pheno_dict = Dict(
+		"Clinical Phenotypic Traits" => clinical_filepath,
+		"UTHSC BXD Young Aged Eye RNA-Seq (Apr22) DESeq2 rlog2" => eye_filepath,
+		"BXD-Longevity Phenotypes" => longevity_filepath
+	);
+	
+	# dataset_options = ["Clinical Phenotypic Traits","UTHSC BXD Young Aged Eye RNA-Seq (Apr22) DESeq2 rlog2", "BXD-Longevity Phenotypes"]
+
+	dataset_options = ["Clinical Phenotypic Traits","UTHSC BXD Young Aged Eye RNA-Seq (Apr22) DESeq2 rlog2"]
 	
 	md"""
 	Select Dataset: $(@bind dataset_select Select(dataset_options))
@@ -67,8 +75,17 @@ end
 
 # ╔═╡ 06fdc054-43a3-496b-8d70-11fb263c1089
 begin
+
+	pheno = CSV.read(pheno_dict[dataset_select], DataFrame)
+	trait_list = select(pheno, Not(["id"])) |> names
+	# if (@isdefined use_covar_select && use_covar_select == "False")
+	# 	trait_list = select(pheno, Not(["id", covar_select])) |> names
+	# else
+	# 	trait_list = select(pheno, Not(["id"])) |> names
+	# end
+	
 	md"""
-	Trait ID: $(@bind trait_str TextField(default="BXD_10001"))
+	Trait ID: $(@bind trait_select Select(trait_list))
 	Number of Permutations: $(@bind nperms_txt TextField(default="1000")) 
 	Filter data: $(@bind use_filter_select Select(["False", "True"]))
 	"""
@@ -91,6 +108,7 @@ end
 
 # ╔═╡ 30325063-e618-4115-9352-e533d3b9a7bf
 begin
+	trait_str = trait_select
 	if (dataset_select == "Clinical Phenotypic Traits")
 		if (trait_str in clinical_trait_descriptions.trait)
 			trait_description = get_bxdtrait_description(trait_str, clinical_trait_descriptions)
@@ -100,6 +118,7 @@ begin
 		end
 	else
 		trait_description = "Description unavailable"
+		printout ="Description unavailable"	
 	end
 	
 	md"""
@@ -109,8 +128,10 @@ end
 
 # ╔═╡ 303700b8-4466-446e-b184-02aebc556d10
 if use_covar_select == "True"
+		covar_list = select(pheno, Not(["id", trait_select])) |> names
+		
 		md"""
-		Enter Covariate Trait ID: $(@bind covar_id_txt TextField())
+		Enter Covariate Trait ID: $(@bind covar_id_txt Select(covar_list))
 		"""
 end
 
@@ -198,11 +219,11 @@ begin
 			use_reml = false
 		end
 
-		if dataset_c[] == "Clinical Phenotypic Traits"
-			pheno = clinical_df
-		elseif dataset_c[] == "UTHSC BXD Young Aged Eye RNA-Seq (Apr22) DESeq2 rlog2"
-			pheno = eye_df
-		end
+		# if dataset_c[] == "Clinical Phenotypic Traits"
+		# 	pheno = clinical_df
+		# elseif dataset_c[] == "UTHSC BXD Young Aged Eye RNA-Seq (Apr22) DESeq2 rlog2"
+		# 	pheno = eye_df
+		# end
 
 		if use_covar_c[] == "True"		
 			
@@ -333,6 +354,8 @@ md"""
 """
 
 # ╔═╡ 20e4f562-99dc-448c-a2a9-dcf404f731c1
+
+
 begin
 	md"""
 	Trait **$trait_str** Description: $trait_description.
@@ -340,6 +363,8 @@ begin
 	Number of samples: $sample_size
 	"""
 end
+	
+	
 
 # ╔═╡ e610b62d-8524-47e5-810a-be7c45b9e617
 md"""
@@ -1978,7 +2003,7 @@ version = "1.4.1+1"
 # ╟─e610b62d-8524-47e5-810a-be7c45b9e617
 # ╟─9cef0eef-2fcd-40bc-b648-850b79ae3526
 # ╟─40267426-ab49-4c3b-97ad-0ab4f27b154d
-# ╠═e2cef125-7b89-4e34-920a-b1943aedf750
+# ╟─e2cef125-7b89-4e34-920a-b1943aedf750
 # ╟─cd5b75e2-a6c1-4c0d-afdc-44e362196d53
 # ╟─87247862-babd-47da-969c-45eb906fd02b
 # ╟─00000000-0000-0000-0000-000000000001
