@@ -27,22 +27,26 @@ begin
 	
 	include("../src/nb_helper.jl")
 	include("../src/processing_helper.jl")
+	include("../src/BigRiverQTL/src/loco_bulkscan.jl")
+	include("../src/BigRiverQTL/src/loco_helpers.jl")
 
-	#geno_filepath = "../data/BXD/processed/geno/genoProcessedFile.csv"
-	#clinical_filepath = "../data/BXD/processed/pheno/phenoProcessedFile.csv"
-	#eye_filepath = "../data/BXD/processed/pheno/BXDeye.csv"
-	#longevity_filepath = "../data/BXD/processed/pheno/longevity.csv"
+	# geno_filepath = "../data/BXD/processed/geno/genoProcessedFile.csv"
+	# clinical_filepath = "../data/BXD/processed/pheno/phenoProcessedFile.csv"
+	# eye_filepath = "../data/BXD/processed/pheno/BXDeye.csv"
+	# longevity_filepath = "../data/BXD/processed/pheno/longevity.csv"
+
+	spleen_filepath = "../data/bxdData/spleen-pheno-nomissing.csv"
 	
 	#geno = CSV.read(geno_filepath, DataFrame)
 	#clinical_df = CSV.read(clinical_filepath, DataFrame)
 	#eye_df = CSV.read(eye_filepath, DataFrame)
 	
-	gInfo = CSV.read("../data/bxdData/gmap.csv", DataFrame);
-	pInfo = CSV.read("../data/bxdData/phenocovar.csv", DataFrame);
+	# gInfo = CSV.read("../data/bxdData/gmap.csv", DataFrame);
+	# pInfo = CSV.read("../data/bxdData/phenocovar.csv", DataFrame);
 
-	pheno_processed = readdlm("../data/bxdData/spleen-pheno-nomissing.csv", ',', header = false)[2:end, 2:(end-1)].*1.0;
+	# pheno_processed = readdlm("../data/bxdData/spleen-pheno-nomissing.csv", ',', header = false)[2:end, 2:(end-1)].*1.0;
 
-	geno_processed = readdlm("../data/bxdData/spleen-bxd-genoprob.csv", ',', header = false)[2:end, 1:2:end] .* 1.0;
+	# geno_processed = readdlm("../data/bxdData/spleen-bxd-genoprob.csv", ',', header = false)[2:end, 1:2:end] .* 1.0;
 	
 end;
 
@@ -61,7 +65,14 @@ md"""
 
 # ╔═╡ 1832345a-0552-4414-9f65-4212584f9c10
 begin
-	dataset_options = ["Spleen mRNA", "Eye Dataset","Clinical Phenotypic Traits"]
+	pheno_dict = Dict(
+		"Spleen mRNA" => spleen_filepath,
+		# "Eye Dataset" => eye_filepath,
+		# "Clinical Phenotypic Traits" => clinical_filepath
+	);
+	
+	dataset_options = ["Spleen mRNA"]
+	# dataset_options = ["Spleen mRNA", "Eye Dataset", "Clinical Phenotypic Traits"]
 
 	md"""
 	Select Dataset: $(@bind dataset_select Select(dataset_options))
@@ -70,11 +81,18 @@ end
 
 # ╔═╡ eb172a0c-975f-465b-b064-a4f7da422e6f
 begin
-	if dataset_select == "Clinical Phenotypic Traits"
-		pheno = clinical_df
-	elseif dataset_select == "Eye Dataset"
-		pheno = eye_df
+
+	if dataset_select == "Spleen mRNA" 
+		gInfo = CSV.read("../data/bxdData/gmap.csv", DataFrame);
+		pInfo = CSV.read("../data/bxdData/phenocovar.csv", DataFrame);
+		
+		pheno_processed = readdlm(pheno_dict[dataset_select], ',', header = false)[2:end, 2:(end-1)].*1.0;
+		
+		geno_processed = readdlm("../data/bxdData/spleen-bxd-genoprob.csv", ',', header = false)[2:end, 1:2:end] .* 1.0;
+	else
+		pheno = CSV.read(pheno_dict[dataset_select], DataFrame)
 	end
+		
 	md"""
 	Estimation method: $(@bind est_select Select(["REML", "ML"]))
 	Data transformation: $(@bind transform_select Select(["None","log2"]))
@@ -83,10 +101,12 @@ begin
 end
 
 # ╔═╡ 7be44004-8bca-4bfb-b891-26187e4ee02f
-md"""
-Specify LOD threshold value: $(@bind thresh_txt TextField(default="5.0"))
-Use LOCO: $(@bind use_loco CheckBox())
-"""
+begin 
+	md"""
+	Specify LOD threshold value: $(@bind thresh_txt TextField(default="5.0"))
+	"""
+	# Use LOCO: $(@bind use_loco CheckBox())
+end
 
 # ╔═╡ 9ca7c7c0-876f-43ed-bc01-9a0c3ba9bf01
 if use_covar_select == "True"
@@ -118,7 +138,7 @@ begin
 	est_c[] = @eval $(Meta.parse("est_select"))
 	transform_c[] = @eval $(Meta.parse("transform_select"))
 	use_covar_c[] = @eval $(Meta.parse("use_covar_select"))
-	use_loco_c[] = @eval $(Meta.parse("use_loco"))
+	# use_loco_c[] = @eval $(Meta.parse("use_loco"))
 	
 
 	if est_c[] == "REML"
@@ -166,7 +186,7 @@ begin
 		"""
 
 		kinship = calcKinship(geno_processed);
-		results = bulkscan(pheno_processed, geno_processed, kinship; reml = use_reml);
+		scan_elapsed = @elapsed results = bulkscan(pheno_processed, geno_processed, kinship; reml = use_reml);
 
 		plot_eQTL(
 			results.L,
@@ -177,6 +197,11 @@ begin
 		
 	end
 end
+
+# ╔═╡ 264e8f7c-5b3e-4d32-87cc-f4be61f0c934
+md"""
+Time for genome scan: $(round(scan_elapsed,digits = 3)) seconds
+""" 
 
 # ╔═╡ 0ade970a-393d-4b98-a231-16a969eaab2b
 md"""
@@ -1762,7 +1787,7 @@ version = "1.4.1+1"
 """
 
 # ╔═╡ Cell order:
-# ╠═f35812e3-784e-4370-9e41-8fe440124878
+# ╟─f35812e3-784e-4370-9e41-8fe440124878
 # ╟─180e36ce-1057-11ee-3f8a-0f8f29f8c869
 # ╟─0e930b52-04e5-4881-9292-d0efdb347256
 # ╟─1832345a-0552-4414-9f65-4212584f9c10
@@ -1771,6 +1796,7 @@ version = "1.4.1+1"
 # ╟─9ca7c7c0-876f-43ed-bc01-9a0c3ba9bf01
 # ╟─91f7bf11-d7c2-4003-b317-bcff6a077ebd
 # ╟─d28a2f2d-5950-4d3f-83cd-9c8a8b536b4a
+# ╟─264e8f7c-5b3e-4d32-87cc-f4be61f0c934
 # ╟─0ade970a-393d-4b98-a231-16a969eaab2b
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
