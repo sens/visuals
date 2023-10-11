@@ -14,365 +14,171 @@ macro bind(def, element)
     end
 end
 
-# ╔═╡ f33213fd-d1f9-4544-95b3-565bd4b4c307
+# ╔═╡ f35812e3-784e-4370-9e41-8fe440124878
 begin 
 	using PlutoUI, DataFrames 
 	using BulkLMM, GeneNetworkAPI
 	using Plots, PlotlyJS, RecipesBase, BigRiverQTLPlots
 	using DelimitedFiles, CSV
-	using Statistics
 
-
-	plotlyjs()
-	#gr()
+	PlutoUI.TableOfContents()
+	
+	# plotlyjs()
+	
 	include("../src/nb_helper.jl")
 	include("../src/processing_helper.jl")
 
-	geno_filepath = "../data/BXD/processed/geno/genoProcessedFile.csv"
-	clinical_filepath = "../data/BXD/processed/pheno/phenoProcessedFile.csv"
-	eye_filepath = "../data/BXD/processed/pheno/BXDeye.csv"
-	longevity_filepath = "../data/BXD/processed/pheno/longevity.csv"
+	#geno_filepath = "../data/BXD/processed/geno/genoProcessedFile.csv"
+	#clinical_filepath = "../data/BXD/processed/pheno/phenoProcessedFile.csv"
+	#eye_filepath = "../data/BXD/processed/pheno/BXDeye.csv"
+	#longevity_filepath = "../data/BXD/processed/pheno/longevity.csv"
 	
-	geno = CSV.read(geno_filepath, DataFrame)
-	clinical_df = CSV.read(clinical_filepath, DataFrame)
-	eye_df = CSV.read(eye_filepath, DataFrame)
+	#geno = CSV.read(geno_filepath, DataFrame)
+	#clinical_df = CSV.read(clinical_filepath, DataFrame)
+	#eye_df = CSV.read(eye_filepath, DataFrame)
+	
+	gInfo = CSV.read("../data/bxdData/gmap.csv", DataFrame);
+	pInfo = CSV.read("../data/bxdData/phenocovar.csv", DataFrame);
 
-	clinical_trait_descriptions = CSV.read("../data/BXD/processed/pheno/phenoTraitDescriptions.csv",DataFrame)
+	pheno_processed = readdlm("../data/bxdData/spleen-pheno-nomissing.csv", ',', header = false)[2:end, 2:(end-1)].*1.0;
+
+	geno_processed = readdlm("../data/bxdData/spleen-bxd-genoprob.csv", ',', header = false)[2:end, 1:2:end] .* 1.0;
+	
 end;
 
-# ╔═╡ 0e142f37-9dc4-428f-b7dd-0772c0032124
-PlutoUI.TableOfContents()
-
-# ╔═╡ 903aba5b-2303-41a2-9a10-624dcb8231d1
+# ╔═╡ 180e36ce-1057-11ee-3f8a-0f8f29f8c869
 md"""
 # Wolf River Interactive
-## Mouse BXD Single Trait Scan Prototype
+## Mouse BXD Multi Trait Scan Prototype
 
-Performs genome scan for single selected trait in BXD population using a linear mixed model (LMM), and provides permutation based significance thresholds.
+Performs genome scans for multiple traits in BXD population using a linear mixed model (LMM), and provides permutation based significance thresholds.
 """
 
-# ╔═╡ 0dd31a45-baed-4760-b853-da7a907f08ec
+# ╔═╡ 0e930b52-04e5-4881-9292-d0efdb347256
 md"""
-### Trait Selection
+### User Selections
 """
 
-# ╔═╡ ca0aed28-d837-4f2d-8dfc-c9d1768474d8
+# ╔═╡ 1832345a-0552-4414-9f65-4212584f9c10
 begin
-	dataset_options = ["Clinical Phenotypic Traits","UTHSC BXD Young Aged Eye RNA-Seq (Apr22) DESeq2 rlog2", "BXD-Longevity Phenotypes"]
-	
+	dataset_options = ["Spleen mRNA", "Eye Dataset","Clinical Phenotypic Traits"]
+
 	md"""
 	Select Dataset: $(@bind dataset_select Select(dataset_options))
 	"""
 end
 
-# ╔═╡ 06fdc054-43a3-496b-8d70-11fb263c1089
+# ╔═╡ eb172a0c-975f-465b-b064-a4f7da422e6f
 begin
+	if dataset_select == "Clinical Phenotypic Traits"
+		pheno = clinical_df
+	elseif dataset_select == "Eye Dataset"
+		pheno = eye_df
+	end
 	md"""
-	Trait ID: $(@bind trait_str TextField(default="BXD_10001"))
-	Number of Permutations: $(@bind nperms_txt TextField(default="1000")) 
-	Filter data: $(@bind use_filter_select Select(["False", "True"]))
+	Estimation method: $(@bind est_select Select(["REML", "ML"]))
+	Data transformation: $(@bind transform_select Select(["None","log2"]))
+	Use covariates: $(@bind use_covar_select Select(["False", "True"]))
 	"""
 end
 
-# ╔═╡ aed4f2e9-1892-482e-843e-79bd7f741e34
+# ╔═╡ 7be44004-8bca-4bfb-b891-26187e4ee02f
 md"""
-Estimation method: $(@bind est_select Select(["REML", "ML"]))
-Use Covariates: $(@bind use_covar_select Select(["False","True"]))
-Data Transformation: $(@bind transform_select Select(["None","log2"]))
+Specify LOD threshold value: $(@bind thresh_txt TextField(default="5.0"))
 Use LOCO: $(@bind use_loco CheckBox())
 """
 
-# ╔═╡ 4d9eb273-2275-4347-b870-014885855b89
-begin
-	md"""
-	Significance threshold: $(@bind thr2 TextField(default="0.05"))   Suggestive threshold: $(@bind thr1 TextField(default="0.1")) 
-	"""
-end
-
-# ╔═╡ 30325063-e618-4115-9352-e533d3b9a7bf
-begin
-	if (dataset_select == "Clinical Phenotypic Traits")
-		if (trait_str in clinical_trait_descriptions.trait)
-			trait_description = get_bxdtrait_description(trait_str, clinical_trait_descriptions)
-			printout = "Trait "*trait_str*" Description: "*trait_description
-		else
-			printout = "Error: Trait "*trait_str*" not found. Please enter a valid trait."
-		end
-	else
-		trait_description = "Description unavailable"
-	end
-	
-	md"""
-	**$printout**
-	"""
-end
-
-# ╔═╡ 303700b8-4466-446e-b184-02aebc556d10
+# ╔═╡ 9ca7c7c0-876f-43ed-bc01-9a0c3ba9bf01
 if use_covar_select == "True"
-		md"""
-		Enter Covariate Trait ID: $(@bind covar_id_txt TextField())
-		"""
-end
-
-# ╔═╡ 41ffc9cf-20c3-4f92-9180-0b9d7bad11fb
-if use_filter_select == "True"
 	md"""
-	### Data Filtration
-	Filter by value: $(@bind filter1_select Select(["Keep","Remove"])) samples with value $(@bind filter1_value TextField()) for trait $(@bind filter1_trait TextField())
-
-	
-	Filter by index: $(@bind filter2_select Select(["Keep","Remove"])) indices $(@bind filter2_indices TextField()) (enter specific index e.g. 2, or index range e.g. 20-30)
-
-	
-	Remove Outliers: $(@bind block_outliers_select Select(["False","True"]))
+	Enter Covariate Trait ID: $(@bind covar_id_txt TextField(default="spleen_default_covar"))
 	"""
 end
 
-# ╔═╡ 2ca40b4d-7674-45af-86a3-8b4905dc6b16
+# ╔═╡ 91f7bf11-d7c2-4003-b317-bcff6a077ebd
 begin
 	btn_c = Ref("")
-	thr_c = Ref(["",""])
-	
+	thr_c = Ref("")
 	dataset_c = Ref("")
-	trait_c = Ref("")
-	nperms_c = Ref("")
 	est_c = Ref("")
 	transform_c = Ref("")
-	use_loco_c = Ref(false)
 	use_covar_c = Ref("")
 	covar_c = Ref("")
-	use_filter_c = Ref("")
-
-	filter1_c = Ref(["","","",""])
-	filter2_c = Ref(["","",""])
-
-	@bind runscan_button Button("Run Scan")
+	use_loco_c = Ref(false)
 	
+	@bind runscan_button Button("Run Scan")
 end
 
-# ╔═╡ 536c2344-a829-4032-a3d0-067286acfc40
+# ╔═╡ d28a2f2d-5950-4d3f-83cd-9c8a8b536b4a
 begin
 	runscan_button
-	btn_c[] = @eval $(Meta.parse("nperms_txt"))
-	thr_c[][1] = @eval $(Meta.parse("thr1"))
-	thr_c[][2] = @eval $(Meta.parse("thr2"))
+	btn_c[] = @eval $(Meta.parse("runscan_button")) 
+	thr_c[] = @eval $(Meta.parse("thresh_txt"))
 	dataset_c[] = @eval $(Meta.parse("dataset_select"))
-	trait_c[] = @eval $(Meta.parse("trait_str"))
-	nperms_c[] = @eval $(Meta.parse("nperms_txt"))
 	est_c[] = @eval $(Meta.parse("est_select"))
 	transform_c[] = @eval $(Meta.parse("transform_select"))
 	use_covar_c[] = @eval $(Meta.parse("use_covar_select"))
-	use_filter_c[] = @eval $(Meta.parse("use_filter_select"))
 	use_loco_c[] = @eval $(Meta.parse("use_loco"))
-
 	
-	if use_filter_c[] == "True"
-		filter1_c[][1] = "filter by value"
-		filter1_c[][2] = @eval $(Meta.parse("filter1_select"))
-		filter1_c[][3] = @eval $(Meta.parse("filter1_value"))
-		filter1_c[][4] = @eval $(Meta.parse("filter1_trait"))
 
-		filter2_c[][1] = "filter by index"
-		filter2_c[][2] = @eval $(Meta.parse("filter2_select"))
-		filter2_c[][3] = @eval $(Meta.parse("filter2_indices"))
-
-		if (length(filter1_c[][3]) > 0 && length(filter2_c[][3]) > 0)
-			filters = [filter1_c[], filter2_c[]]
-		elseif (length(filter1_c[][3]) > 0)
-			filters = [filter1_c[]]
-		elseif (length(filter2_c[][3]) > 0)
-			filters = [filter2_c[]]
-		else
-			filters = nothing
-		end
+	if est_c[] == "REML"
+		use_reml = true
 	else
-		filters = nothing
+		use_reml = false
 	end
 	
 	
 	if btn_c != ""
 		
-		if est_c[] == "REML"
-			use_reml = true
-		else
-			use_reml = false
-		end
-
-		if dataset_c[] == "Clinical Phenotypic Traits"
-			pheno = clinical_df
-		elseif dataset_c[] == "UTHSC BXD Young Aged Eye RNA-Seq (Apr22) DESeq2 rlog2"
-			pheno = eye_df
-		end
-
-		if use_covar_c[] == "True"		
-			
+		"""
+		if use_covar_c[] == "True"
 			covar_c[] = @eval $(Meta.parse("covar_id_txt"))
 
-			if use_loco_c[] == true
-				gInfo, loco_geno, pheno_y, covar, final_strains = process_data_loco(geno, pheno, trait_c[], covar_c[]; transformation=transform_c[], filters=filters)
+			gInfo, geno_processed,kinship, pheno_processed, covar_y, final_strains = process_data(geno,pheno; transformation=transform_c[], use_loco=use_loco)
 
-				loco_kinship = calcLocoKinship(loco_geno)
+			
+			
+			results = bulkscan_null(pheno_processed, geno_processed, kinship; nb = Threads.nthreads(), reml = use_reml)
+		
+			plot_eQTL(
+			results.L,
+			pInfo,
+			gInfo;
+			threshold = parse(Float64,thr_c[])
+			)
 
-				results = loco_scan(pheno_y, loco_geno, covar, loco_kinship; reml = use_reml, permutation_test = true, nperms = parse(Int64, btn_c[]))
-				
-				thresh_results = get_thresholds(results.L_perms, [0.10, 0.05])
-				sample_size = size(pheno_y)[1]
-				
-				plot_QTL(
-					results,
-					gInfo,
-					significance = parse.(Float64,thr_c[]),
-					legend = false,
-					label = "",
-					left_margin = (5,:mm),
-					top_margin = (5, :mm),
-					title = "Single trait $trait_str LOD scores"
-				)
-			else
-				
-				gInfo, geno_processed, pheno_y, covar, final_strains = process_data(geno, pheno, trait_c[], covar_c[]; transformation=transform_c[], filters=filters)
-
-				kinship = calcKinship(geno_processed)
-	
-				results = scan(pheno_y, geno_processed, covar, kinship; reml = use_reml, permutation_test = true, nperms = parse(Int64, btn_c[]))
-	
-				thresh_results = get_thresholds(results.L_perms, [0.10, 0.05])
-				sample_size = size(pheno_y)[1]
-				plot_QTL(
-					results, 
-					gInfo,
-					significance = parse.(Float64,thr_c[]),
-					legend = false,
-					label = "",
-					left_margin = (5,:mm),
-					top_margin = (5, :mm),
-					title = "Single trait $trait_str LOD scores"
-				)
-			end
 			
 		else
+			gInfo, geno_processed, pheno_processed, final_strains = process_data(geno, pheno; transformation=transform_c[])
 
-			if use_loco_c[] == true
-				gInfo, loco_geno, pheno_y, final_strains = process_data_loco(geno, pheno, trait_c[]; transformation=transform_c[])
-
-				loco_kinship = calcLocoKinship(loco_geno)
-		
-				results = loco_scan(pheno_y, loco_geno, loco_kinship; reml = use_reml, permutation_test = true, nperms = parse(Int64, btn_c[]))
-
-				thresh_results = get_thresholds(results.L_perms, [0.10, 0.05])
-				sample_size = size(pheno_y)[1]
-				plot_QTL(
-					results, 
-					gInfo,
-					significance = parse.(Float64,thr_c[]),
-					legend = false,
-					label = "",
-					left_margin = (5,:mm),
-					top_margin = (5, :mm),
-					title = "Single trait $trait_str LOD scores"
-				)
-
-			else
+			kinship = calcKinship(geno_processed)
 			
-				gInfo, geno_processed, pheno_y, final_strains = process_data(geno, pheno, trait_c[]; transformation=transform_c[])
-				sample_size = size(pheno_y)[1]
-				kinship = calcKinship(geno_processed)
+			results = bulkscan_null(pheno_processed, geno_processed, kinship; nb = Threads.nthreads(), reml = use_reml)
+
 			
-				results = scan(pheno_y, geno_processed, kinship; reml = use_reml, permutation_test = true, nperms = parse(Int64, btn_c[]))
-	
-				thresh_results = get_thresholds(results.L_perms, [0.10, 0.05])
-				sample_size = size(pheno_y)[1]
-				plot_QTL(
-					results, 
-					gInfo,
-					significance = parse.(Float64,thr_c[]),
-					legend = false,
-					label = "",
-					left_margin = (5,:mm),
-					top_margin = (5, :mm),
-					title = "Single trait $trait_str LOD scores"
-				)
-			end
+			plot_eQTL(
+				results.L,
+				pInfo,
+				gInfo;
+				threshold = parse(Float64,thr_c[])
+			)
 		end
-		
-	end
-end
+		"""
 
-# ╔═╡ 56fa074e-92c1-429f-be9c-5e507afe283b
-md"""
-Show loci above $(round(thresh_results.thrs[1],digits=3)): $(@bind show1 CheckBox())
-Show loci above $(round(thresh_results.thrs[2],digits=3)): $(@bind show2 CheckBox())
-"""
+		kinship = calcKinship(geno_processed);
+		results = bulkscan(pheno_processed, geno_processed, kinship; reml = use_reml);
 
-# ╔═╡ 43e20bc1-b06b-4d66-a56a-2abe3607d71f
-begin
-	if show1
-		thresh1 = thresh_results.thrs[1]
-		idx_thresh1 = findall(results.lod .>= thresh1)
-		df_results1 = gInfo[idx_thresh1,:]
-		df_results1.LOD = results.lod[idx_thresh1]
-		df_results1
-	end
-end
-
-# ╔═╡ 07f0b96a-a4ec-4d73-88a9-1c0c788f144c
-begin
-	if show2
-		
-		thresh2 = thresh_results.thrs[2]
-		idx_thresh2 = findall(results.lod .>= thresh2)
-		df_results2 = gInfo[idx_thresh2,:]
-		df_results2.LOD = results.lod[idx_thresh2]
-		df_results2
-	end
-end
-
-# ╔═╡ c0ed28c9-6f85-4a2b-b03a-6a55506a9cac
-md"""
-### Trait Information
-"""
-
-# ╔═╡ 20e4f562-99dc-448c-a2a9-dcf404f731c1
-begin
-	md"""
-	Trait **$trait_str** Description: $trait_description.
-
-	Number of samples: $sample_size
-	"""
-end
-
-# ╔═╡ e610b62d-8524-47e5-810a-be7c45b9e617
-md"""
-#### Trait dotplot
-
-Trait $trait_str Value Distribution:
-"""
-
-# ╔═╡ 9cef0eef-2fcd-40bc-b648-850b79ae3526
-begin
-	
-	trait = pheno_y
-	Plots.scatter(
-		trait, 
-		final_strains,
-		markersize=5,
-		legend=false,
-		yticks=(collect(1:sample_size),final_strains)
+		plot_eQTL(
+			results.L,
+			pInfo,
+			gInfo;
+			threshold = parse(Float64,thr_c[])
 		)
+		
+	end
 end
 
-# ╔═╡ 40267426-ab49-4c3b-97ad-0ab4f27b154d
-md"""
-#### Trait Histogram
-"""
-
-# ╔═╡ e2cef125-7b89-4e34-920a-b1943aedf750
-Plots.histogram(pheno_y, legend = false,title = "Histogram of Trait $trait_str Value Distribution", grid = false, top_margin = (10,:mm))
-
-# ╔═╡ cd5b75e2-a6c1-4c0d-afdc-44e362196d53
-
-
-# ╔═╡ 87247862-babd-47da-969c-45eb906fd02b
+# ╔═╡ 0ade970a-393d-4b98-a231-16a969eaab2b
 md"""
 ---
 **Harper Kolehmainen, Gregory Farage, Saunak Sen**    
@@ -387,8 +193,8 @@ md"""
 	B.S. in Computer Science
 	Rhodes College
 	Memphis, TN
-    
 """
+    
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -403,7 +209,6 @@ PlotlyJS = "f0f68f2c-4968-5e81-91da-67840de0976a"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
-Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
 BigRiverQTLPlots = "~0.2.2"
@@ -424,7 +229,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.9.3"
 manifest_format = "2.0"
-project_hash = "e7398a89920b438e6a7751ba5c04e4a7ef13164d"
+project_hash = "cfc4ec4ec12ab38725d57985314b82c58efda11a"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -1957,29 +1762,15 @@ version = "1.4.1+1"
 """
 
 # ╔═╡ Cell order:
-# ╟─0e142f37-9dc4-428f-b7dd-0772c0032124
-# ╟─f33213fd-d1f9-4544-95b3-565bd4b4c307
-# ╟─903aba5b-2303-41a2-9a10-624dcb8231d1
-# ╟─0dd31a45-baed-4760-b853-da7a907f08ec
-# ╟─ca0aed28-d837-4f2d-8dfc-c9d1768474d8
-# ╟─06fdc054-43a3-496b-8d70-11fb263c1089
-# ╟─aed4f2e9-1892-482e-843e-79bd7f741e34
-# ╟─4d9eb273-2275-4347-b870-014885855b89
-# ╟─30325063-e618-4115-9352-e533d3b9a7bf
-# ╟─303700b8-4466-446e-b184-02aebc556d10
-# ╟─41ffc9cf-20c3-4f92-9180-0b9d7bad11fb
-# ╟─2ca40b4d-7674-45af-86a3-8b4905dc6b16
-# ╟─536c2344-a829-4032-a3d0-067286acfc40
-# ╟─56fa074e-92c1-429f-be9c-5e507afe283b
-# ╟─43e20bc1-b06b-4d66-a56a-2abe3607d71f
-# ╟─07f0b96a-a4ec-4d73-88a9-1c0c788f144c
-# ╟─c0ed28c9-6f85-4a2b-b03a-6a55506a9cac
-# ╟─20e4f562-99dc-448c-a2a9-dcf404f731c1
-# ╟─e610b62d-8524-47e5-810a-be7c45b9e617
-# ╟─9cef0eef-2fcd-40bc-b648-850b79ae3526
-# ╟─40267426-ab49-4c3b-97ad-0ab4f27b154d
-# ╠═e2cef125-7b89-4e34-920a-b1943aedf750
-# ╟─cd5b75e2-a6c1-4c0d-afdc-44e362196d53
-# ╟─87247862-babd-47da-969c-45eb906fd02b
+# ╠═f35812e3-784e-4370-9e41-8fe440124878
+# ╟─180e36ce-1057-11ee-3f8a-0f8f29f8c869
+# ╟─0e930b52-04e5-4881-9292-d0efdb347256
+# ╟─1832345a-0552-4414-9f65-4212584f9c10
+# ╟─eb172a0c-975f-465b-b064-a4f7da422e6f
+# ╟─7be44004-8bca-4bfb-b891-26187e4ee02f
+# ╟─9ca7c7c0-876f-43ed-bc01-9a0c3ba9bf01
+# ╟─91f7bf11-d7c2-4003-b317-bcff6a077ebd
+# ╟─d28a2f2d-5950-4d3f-83cd-9c8a8b536b4a
+# ╟─0ade970a-393d-4b98-a231-16a969eaab2b
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
